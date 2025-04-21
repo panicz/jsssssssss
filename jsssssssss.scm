@@ -25,10 +25,31 @@ function cdr(a) {
   return a.cdr;
 }
 
+function null$Qu(a) { return (Array.isArray(a) && !a.length) }
+function boolean$Qu(a) { return typeof(a) == 'boolean' }
+function number$Qu(a) { return typeof(a) == 'number' }
+function symbol$Qu(a) { return typeof(a) == 'object' && typeof(a.symbol) == 'string' }
+
+function pair$Qu(a) {
+  return typeof(a) == 'object' && (
+           (Array.isArray(a) && a.length) || 
+           (typeof(a.car) != 'undefined' && typeof(a.cdr) != 'undefined')
+         )
+}
+
+function _binary_eqv(a, b) {
+  return (null$Qu(a) && null$Qu(b)) ||
+         (symbol$Qu(a) && symbol$Qu(b) && a.symbol == b.symbol) ||
+         (boolean$Qu(a) && boolean$Qu(b) && a == b) ||
+         (number$Qu(a) && number$Qu(b) && a == b) ||
+         a === b
+}
+
+const _binary_eq = _binary_eqv /// revise me when you want to be faster
+
 function eq$Qu(...args) {
-  var eq = (a,b) => a === b || (Array.isArray(a) && Array.isArray(b) && !a.length && !b.length)
   for (var i = 1; i < args.length; ++i) {
-    if (!eq(args[i-1], args[i])) {
+    if (!_binary_eq(args[i-1], args[i])) {
       return false;
     }
   }
@@ -36,9 +57,8 @@ function eq$Qu(...args) {
 }
 
 function eqv$Qu(...args) {
-  var eqv = (a,b) => a == b || (Array.isArray(a) && Array.isArray(b) && !a.length && !b.length)
   for (var i = 1; i < args.length; ++i) {
-    if (!eqv(args[i-1], args[i])) {
+    if (!_binary_eqv(args[i-1], args[i])) {
       return false;
     }
   }
