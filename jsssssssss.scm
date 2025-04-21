@@ -26,9 +26,9 @@ function cdr(a) {
 }
 
 function eq$Qu(...args) {
-  let eq = (a,b) => a === b || (Array.isArray(a) && Array.isArray(b) && !a.length && !b.length)
+  var eq = (a,b) => a === b || (Array.isArray(a) && Array.isArray(b) && !a.length && !b.length)
   for (var i = 1; i < args.length; ++i) {
-    if (!eq(args[i-1],args[i])) {
+    if (!eq(args[i-1], args[i])) {
       return false;
     }
   }
@@ -36,7 +36,7 @@ function eq$Qu(...args) {
 }
 
 function eqv$Qu(...args) {
-  let eqv = (a,b) => a == b || (Array.isArray(a) && Array.isArray(b) && !a.length && !b.length)
+  var eqv = (a,b) => a == b || (Array.isArray(a) && Array.isArray(b) && !a.length && !b.length)
   for (var i = 1; i < args.length; ++i) {
     if (!eqv(args[i-1], args[i])) {
       return false;
@@ -206,9 +206,9 @@ function apply(f, ...args) {
     
     (`(if ,test ,then ,else)
      (string-append
-      "("(to-js test)")"
+      "(("(to-js test)")"
       "?("(to-js then)")"
-      ":("(to-js else)")"))
+      ":("(to-js else)"))"))
     
     (`(set! ,variable ,expression)
      (string-append

@@ -40,3 +40,6 @@
 (console.log (boo x))
 (console.log '(expecting 10:))
 (console.log x)
+
+(console.log ((if #t + *) 2 3))
+(console.log ((if #f + *) 2 3))
