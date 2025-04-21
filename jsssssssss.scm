@@ -26,8 +26,9 @@ function cdr(a) {
 }
 
 function eq$Qu(...args) {
+  let eq = (a,b) => a === b || (Array.isArray(a) && Array.isArray(b) && !a.length && !b.length)
   for (var i = 1; i < args.length; ++i) {
-    if (!(args[i-1] === args[i])) {
+    if (!eq(args[i-1],args[i])) {
       return false;
     }
   }
@@ -35,8 +36,9 @@ function eq$Qu(...args) {
 }
 
 function eqv$Qu(...args) {
+  let eqv = (a,b) => a == b || (Array.isArray(a) && Array.isArray(b) && !a.length && !b.length)
   for (var i = 1; i < args.length; ++i) {
-    if (!(args[i-1] == args[i])) {
+    if (!eqv(args[i-1], args[i])) {
       return false;
     }
   }
