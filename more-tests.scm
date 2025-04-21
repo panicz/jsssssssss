@@ -1,3 +1,6 @@
+(console.log '(1 2 3 yes we do serialize ok! (o . -)))
+(console.log '<%%!!weird-=-symbol??%%>)
+
 (console.log (if (eq? () ()) 'ok '(nil != nil wtf)))
 (console.log (if (eq? () (cdr '(test))) 'ok '(nil != nil again)))
 
@@ -13,6 +16,8 @@
 
 (console.log (if (pair? (cons 2 3)) 'ok '(pair bad)))
 (console.log (if (pair? '(hello)) 'ok '(pair bad)))
+(console.log (if (pair? '(h e l l o)) 'ok '(pair bad)))
+(console.log (if (pair? '(h e l l . o)) 'ok '(pair bad)))
 (console.log (if (pair? '()) '(pair bad) 'ok))
 (console.log (if (pair? (* 2 3)) '(pair bad) 'ok))
 (console.log (if (pair? #t) '(pair bad) 'ok))
@@ -72,4 +77,12 @@
 (console.log (if '(woo) 'ok 'nope))
 
 (console.log (eq? 'lambda (car ((lambda lambda lambda) 'lambda)))) ;; niiice!
-;(console.log ((lambda (if) (if 'p 'c 'a)) (lambda (a b c) (cons a (cons b (cons c)))))) ;; heh.
+;;(console.log ((lambda (if) (if 'p 'c 'a)) (lambda (a b c) (cons a (cons b (cons c '())))))) ;; oww, to-js needs to be aware of bound symbols then...
+
+(console.log '(now something really stupid, overwrite + with *))
+(define old-+ +)
+(set! + *)
+(define list (lambda x x))
+(console.log (list '(+ 2 3) 'is 'now (+ 2 3)))
+(set! + old-+)
+(console.log (list 'and 'now '(+ 2 3) 'is (+ 2 3) 'again))
