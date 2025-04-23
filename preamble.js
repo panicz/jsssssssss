@@ -45,17 +45,17 @@ internal.eqv = mk_seq_rel(
 )
 
 internal.sym2str = s => s.symbol.slice(3) /// a Provisional Solution (tm)
-                                .replaceAll("$Pl", "+")
-                                .replaceAll("$Mn", "-")
-                                .replaceAll("$St", "*")
-                                .replaceAll("$Sl", "/")
-                                .replaceAll("$Ls", "<")
-                                .replaceAll("$Gt", ">")
-                                .replaceAll("$Eq", "=")
-                                .replaceAll("$Ex", "!")
-                                .replaceAll("$Pc", "%")
-                                .replaceAll("$Qu", "?")
-                                .replaceAll("$Dt", ".")
+                                .replace(/[$]Pl/g, "+")
+                                .replace(/[$]Mn/g, "-")
+                                .replace(/[$]St/g, "*")
+                                .replace(/[$]Sl/g, "/")
+                                .replace(/[$]Ls/g, "<")
+                                .replace(/[$]Gt/g, ">")
+                                .replace(/[$]Eq/g, "=")
+                                .replace(/[$]Ex/g, "!")
+                                .replace(/[$]Pc/g, "%")
+                                .replace(/[$]Qu/g, "?")
+                                .replace(/[$]Dt/g, ".")
 
 internal.serialize = e => {
   switch(true) {
