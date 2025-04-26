@@ -92,7 +92,11 @@
       (symbol->js variable)"="(to-js expression)))
 
     (`(define (,function . ,args) . ,body)
-     (string-append
+     (to-js `(define ,function (lambda ,args . ,body)))
+     ;; can't rely on "function" keyword here since each
+     ;; redefinition shadows previous ones on pre-processing
+     ;; phsae it seems.
+     #;(string-append
       "function "(to-js function)"("(args-to-js args)"){"
       "return "(string-join (map to-js body)",")";"
       "}"))
