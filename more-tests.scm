@@ -86,3 +86,19 @@
 (console.log (list '(+ 2 3) 'is 'now (+ 2 3)))
 (set! + old-+)
 (console.log (list 'and 'now '(+ 2 3) 'is (+ 2 3) 'again))
+
+
+(define (list . x) x)
+
+(define evil 13)
+(console.log (list 13 'is evil))
+(define evil 23)
+(console.log (list 23 'is evil))
+
+(define (foo x) (* x x))
+(console.log '(define (foo x) (* x x)))
+(console.log (list '(foo 3) 'is (foo 3)))
+
+(define (foo x) (+ x x))
+(console.log '(define (foo x) (+ x x)))
+(console.log (list 'and 'now '(foo 3) 'is (foo 3)))
