@@ -1,17 +1,14 @@
+#!/usr/bin/guile \
+-L . -s
+!#
 (import (ice-9 match))
 (import (ice-9 string-fun))
 (import (ice-9 textual-ports))
+(import (expander))
 
 ;; JavaScript Scrounged from a Simple and Straightforward Subset of Scheme
 
 (define preamble (call-with-input-file "preamble.js" get-string-all))
-
-(define (fold-left f init l)
-  (match l
-    ('()
-     init)
-    (`(,h . ,t)
-     (fold-left f (f init h) t))))
 
 (define (symbol->js expression)
   (string-append "s__"
@@ -30,8 +27,12 @@
 	                          ("!" "$Ex")
 	                          ("%" "$Pc")
 	                          ("?" "$Qu")
-                              ("." "$Dt")
-	                          ))))
+				  ("@" "$At")
+				  ("~" "$Tl")
+				  ("&" "$Am")
+				  ("#" "$Nm")
+				  ("." "$Dt")
+				  ))))
 
 (define (string-escape string)
   (fold-left (lambda (string substitution)
@@ -75,48 +76,39 @@
      (string-append "..."(symbol->js last)))))
 
 (define (to-js expression)
-  (match expression
-    (`(lambda ,args . ,body)
-     (string-append
-      "(("(args-to-js args)")=>("(string-join
-				  (map to-js body)",")"))"))
-    
-    (`(if ,test ,then ,else)
-     (string-append
-      "(("(to-js test)")"
-      "?("(to-js then)")"
-      ":("(to-js else)"))"))
-    
-    (`(set! ,variable ,expression)
-     (string-append
-      (symbol->js variable)"="(to-js expression)))
+  (let ((expression (expand expression core-macros)))
+    (match expression
+      (`(lambda ,args . ,body)
+       (string-append
+	"(("(args-to-js args)")=>("(string-join
+				    (map to-js body)",")"))"))
 
-    (`(define (,function . ,args) . ,body)
-     (to-js `(define ,function (lambda ,args . ,body)))
-     ;; can't rely on "function" keyword here since each
-     ;; redefinition shadows previous ones on pre-processing
-     ;; phsae it seems.
-     #;(string-append
-      "function "(to-js function)"("(args-to-js args)"){"
-      "return "(string-join (map to-js body)",")";"
-      "}"))
+      (`(if ,test ,then ,else)
+       (string-append
+	"(("(to-js test)")"
+	"?("(to-js then)")"
+	":("(to-js else)"))"))
 
-    (`(define ,variable ,expression)
-     (string-append
-      "var "(symbol->js variable)" = "(to-js expression)";"))
+      (`(set! ,variable ,expression)
+       (string-append
+	(symbol->js variable)"="(to-js expression)))
 
-    (`(quote ,literal)
-     (js-representation literal))
-    
-    (`(,function . ,args)
-     (string-append (to-js function) "("(string-join
-					 (map to-js args)",")")"))
-    
-    (_
-     (if (symbol? expression)
-	 (symbol->js expression)
-	 (js-representation expression)))
-    ))
+      (`(define ,variable ,expression)
+       (string-append
+	"var "(symbol->js variable)" = "(to-js expression)";"))
+
+      (`(quote ,literal)
+       (js-representation literal))
+
+      (`(,function . ,args)
+       (string-append (to-js function) "("(string-join
+					   (map to-js args)",")")"))
+
+      (_
+       (if (symbol? expression)
+	   (symbol->js expression)
+	   (js-representation expression)))
+      )))
 
 (display preamble)
 

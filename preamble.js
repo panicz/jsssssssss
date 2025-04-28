@@ -55,6 +55,9 @@ internal.sym2str = s => s.symbol.slice(3) /// a Provisional Solution (tm)
                                 .replace(/[$]Ex/g, "!")
                                 .replace(/[$]Pc/g, "%")
                                 .replace(/[$]Qu/g, "?")
+                                .replace(/[$]At/g, "@")
+                                .replace(/[$]Tl/g, "~")
+                                .replace(/[$]Nm/g, "#")
                                 .replace(/[$]Dt/g, ".")
 
 internal.serialize = e => {

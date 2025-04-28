@@ -1,4 +1,6 @@
-(import (ice-9 match))
+(define-module (expander)
+  #:use-module (ice-9 match)
+  #:export (expand core-macros fold-left))
 
 (define-syntax e.g.
   (syntax-rules (===>)
@@ -135,7 +137,7 @@
 		     `(,element . ,set)))
 	       a b))
   (fold-left union s0 s*))
-					
+
 (e.g. (union '(a b c) '(c b n) '(a f d))
       ===> (d f n a b c))
 
@@ -151,6 +153,9 @@
 	(and (every (is _ in b) a)
 	     (every (is _ in a) b))))
   (every (is _ set=? s0) s*))
+
+(define (...? s)
+  (eq? s '...))
 
 (define (used-symbols expression)
   (match expression
@@ -189,27 +194,39 @@
   '((('let ((name value) ...)
        . body)
      (('lambda (name ...) . body) value ...))
+
     (('let* () . body)
      ('begin . body))
+
     (('let* ((name-1 value-1)
   	     (name-2 value-2) ...)
        . body)
      ('let ((name-1 value-1))
        ('let* ((name-2 value-2) ...)
          . body)))
+
     (('and)
      #true)
+
     (('and last)
      last)
+
     (('and first . rest)
      ('if first ('and . rest) #false))
+
     (('or)
      #false)
+
     (('or last)
      last)
+
     (('or first . rest)
      ('let ((result first))
        ('if result result ('or . rest))))
+
+    (('define (name . args) . body)
+     ('define name ('lambda args . body)))
+
     (('is '_ < b)
      ('lambda (a)
        ('is a < b)))
@@ -224,25 +241,22 @@
     (('isnt '_ ok?)
      ('lambda (a)
        ('not (ok? a))))
-    
+
     (('isnt a ok?)
      ('not (ok? a)))
-    
+
     (('isnt '_ < b)
      ('lambda (a)
        ('not ('is a < b))))
-    
+
     (('isnt a < '_)
      ('lambda (b)
        ('not ('is a < b))))
-    
+
     (('isnt a < b)
      ('not ('is a < b)))
-    
-    ))
 
-(define (...? s)
-  (eq? s '...))
+    ))
 
 (define (bind pattern #;to form
 	      #;given bound-variables)
@@ -434,6 +448,9 @@
        `(if ,(expand condition)
 	    ,(expand then)
 	    ,(expand else)))
+      (`(set! ,variable ,value)
+       `(set! ,(expand variable)
+	      ,(expand value)))
       (`(,operator . ,operands)
        (let ((transformed (fix transform expression)))
 	 (if (equal? expression transformed)
