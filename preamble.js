@@ -75,7 +75,7 @@ internal.serialize = e => {
   }
 }
 
-internal.console_log = e => console.log(internal.serialize(e))
+internal.console_log = e => { console.log(internal.serialize(e)) ; return e }
 
 var s__cons = internal.cons
 var s__car = internal.car
