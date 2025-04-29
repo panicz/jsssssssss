@@ -205,6 +205,11 @@
        ('let* ((name-2 value-2) ...)
          . body)))
 
+    (('begin expr)
+     expr)
+    (('begin . exprs)
+     (('lambda () . exprs)))
+
     (('and)
      #true)
 
@@ -471,9 +476,8 @@
 	   core-macros))
  ===> ((lambda (a)
 	 ((lambda (b)
-	    (begin
-	      ((lambda (result~0)
-		 (if result~0 result~0 (+ a b)))
-	       (> a b))))
-	  (* a 2)))
+        ((lambda (result~0)
+           (if result~0 result~0 (+ a b)))
+         (> a b)))
+      (* a 2)))
        5))
