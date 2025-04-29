@@ -85,9 +85,9 @@
 
       (`(if ,test ,then ,else)
        (string-append
-	"(("(to-js test)")"
-	"?("(to-js then)")"
-	":("(to-js else)"))"))
+	"(("(to-js test)")===false"
+	"?("(to-js else)")"
+	":("(to-js then)"))"))
 
       (`(set! ,variable ,expression)
        (string-append
