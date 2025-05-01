@@ -102,3 +102,33 @@
 (define (foo x) (+ x x))
 (console.log '(define (foo x) (+ x x)))
 (console.log (list 'and 'now '(foo 3) 'is (foo 3)))
+
+(console.log
+ ((lambda ()
+    (define (sq x) (* x x))
+    (define x 5)
+    (sq x))))
+
+(console.log
+ (list 'expecting 9 'here: 
+       ((lambda (x)
+          (console.log 'ple-ple-ple)
+          (define (skwyr x) (* x x))
+          (define (ole! y) (set! x y) y)
+          (ole! (skwyr x))
+          x) (+ 2 1))))
+
+(begin
+  (console.log '(just some silly begin stuff))
+  (define (fac n) (if (= n 0) 1 (* n (fac (- n 1)))))
+  (console.log (list '(fac 5) 'is (fac 5)))
+  (define more-than-100 (fac 5))
+  (console.log (list '(and this should be sth around 14400:) (* more-than-100 more-than-100))))
+
+(console.log '(expecting (5 25 (5 5) (25 25)) below:))
+(console.log
+ (let* ((x (+ 2 3))
+        (y (* x x)))
+   (define (dup x) (list x x))
+   (list x y (dup x) (dup y))))
+

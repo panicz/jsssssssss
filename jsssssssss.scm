@@ -80,14 +80,13 @@
     (match expression
       (`(lambda ,args . ,body)
        (string-append
-	"(("(args-to-js args)")=>("(string-join
-				    (map to-js body)",")"))"))
+	"(("(args-to-js args)")=> {" (sequence-to-js body) "})"))
 
       (`(if ,test ,then ,else)
        (string-append
-	"(("(to-js test)")"
-	"?("(to-js then)")"
-	":("(to-js else)"))"))
+	"(("(to-js test)")===false"
+	"?("(to-js else)")"
+	":("(to-js then)"))"))
 
       (`(set! ,variable ,expression)
        (string-append
@@ -103,12 +102,19 @@
       (`(,function . ,args)
        (string-append (to-js function) "("(string-join
 					   (map to-js args)",")")"))
-
+      
       (_
        (if (symbol? expression)
 	   (symbol->js expression)
 	   (js-representation expression)))
       )))
+
+(define (sequence-to-js seq)
+  (match seq
+    (`(,exp)
+     (string-append "return " (to-js exp) ";"))
+    (`(,exp . ,seq*)
+     (string-append (to-js exp) ";" (sequence-to-js seq*)))))
 
 (display preamble)
 
