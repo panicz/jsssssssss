@@ -4,9 +4,8 @@
 (import (ice-9 match))
 (import (ice-9 string-fun))
 (import (ice-9 textual-ports))
+(import (base))
 (import (expander))
-
-;; JavaScript Scrounged from a Simple and Straightforward Subset of Scheme
 
 (define preamble (call-with-input-file "preamble.js" get-string-all))
 
@@ -76,38 +75,46 @@
      (string-append "..."(symbol->js last)))))
 
 (define (to-js expression)
-  (let ((expression (expand expression core-macros)))
-    (match expression
-      (`(lambda ,args . ,body)
-       (string-append
-	"(("(args-to-js args)")=> {" (sequence-to-js body) "})"))
+  (match expression
+    (`(lambda ,args . ,body)
+     (string-append
+      "(("(args-to-js args)")=> {" (sequence-to-js body) "})"))
 
-      (`(if ,test ,then ,else)
-       (string-append
-	"(("(to-js test)")===false"
-	"?("(to-js else)")"
-	":("(to-js then)"))"))
+    (`(if ,test ,then ,else)
+     (string-append
+      "(("(to-js test)")===false"
+      "?("(to-js else)")"
+      ":("(to-js then)"))"))
 
-      (`(set! ,variable ,expression)
-       (string-append
-	(symbol->js variable)"="(to-js expression)))
+    (`(if ,test ,then)
+     (string-append
+      "(("(to-js test)")===false"
+      "?(unspecified)"
+      ":("(to-js then)"))"))
 
-      (`(define ,variable ,expression)
-       (string-append
-	"var "(symbol->js variable)" = "(to-js expression)";"))
+    (`(begin . ,operations)
+     (string-append "{" (string-join (map to-js operations) ";") "}"))
+     
+    (`(set! ,variable ,expression)
+     (string-append
+      (symbol->js variable)"="(to-js expression)))
 
-      (`(quote ,literal)
-       (js-representation literal))
+    (`(define ,variable ,expression)
+     (string-append
+      "var "(symbol->js variable)" = "(to-js expression)))
 
-      (`(,function . ,args)
-       (string-append (to-js function) "("(string-join
-					   (map to-js args)",")")"))
-      
-      (_
-       (if (symbol? expression)
-	   (symbol->js expression)
-	   (js-representation expression)))
-      )))
+    (`(quote ,literal)
+     (js-representation literal))
+
+    (`(,function . ,args)
+     (string-append (to-js function) "("(string-join
+					 (map to-js args)",")")"))
+
+    (_
+     (if (symbol? expression)
+	 (symbol->js expression)
+	 (js-representation expression)))
+    ))
 
 (define (sequence-to-js seq)
   (match seq
@@ -118,10 +125,9 @@
 
 (display preamble)
 
-(let loop ()
-  (let ((expression (read)))
-    (unless (eof-object? expression)
-      (display (to-js expression))
-      (display ";")
-      (newline)
-      (loop))))
+(let* ((program (read-all))
+       (expressions (expand-program program core-transforms)))
+  (for expression in expressions
+    (display (to-js expression))
+    (display ";")
+    (newline)))
