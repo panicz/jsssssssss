@@ -35,37 +35,19 @@
       (symbol->string base-symbol)
       "~"(number->string ordinal)))))
 
-
-(define core-transforms
-  '((('let ((name value) ...)
-       . body)
-     (('lambda (name ...) . body) value ...))
-
-    (('let* () . body)
-     ('begin . body))
-
-    (('let* ((name-1 value-1)
-  	     (name-2 value-2) ...)
-       . body)
-     ('let ((name-1 value-1))
-       ('let* ((name-2 value-2) ...)
-         . body)))
-
-    (('begin expr)
-     expr)
-    (('begin . exprs)
-     (('lambda () . exprs)))
-
-    (('and)
+(define and-transform
+  '((('and)
      #true)
-
+    
     (('and last)
      last)
 
     (('and first . rest)
      ('if first ('and . rest) #false))
+    ))
 
-    (('or)
+(define or-transform
+  '((('or)
      #false)
 
     (('or last)
@@ -74,11 +56,38 @@
     (('or first . rest)
      ('let ((result first))
        ('if result result ('or . rest))))
-
-    (('define (name . args) . body)
-     ('define name ('lambda args . body)))
-
     ))
+
+(define let*-transform
+  '((('let* () . body)
+     ('begin . body))
+
+    (('let* ((name-1 value-1)
+  	     (name-2 value-2) ...)
+       . body)
+     ('let ((name-1 value-1))
+       ('let* ((name-2 value-2) ...)
+	 . body)))
+    ))
+
+(define let-transform
+  '((('let ((name value) ...)
+       . body)
+     (('lambda (name ...) . body) value ...))
+    ))
+
+(define define-transform
+  '((('define (name . args) . body)
+     ('define name ('lambda args . body)))
+    ))
+
+(define core-transforms
+  (append
+   and-transform
+   or-transform
+   define-transform
+   let-transform
+   let*-transform))
 
 (define (bind pattern #;to form
 	      #;given bound-variables)
@@ -285,88 +294,56 @@
 	 expression))))
 
   (match expression
-      (`(quote ,_)
-       expression)
-      (`(lambda ,args . ,body)
-       `(lambda ,args . ,(expand-program body transforms)))
-      
-      (`(if ,condition ,then ,else)
-       `(if ,(expand condition transforms)
-	    ,(expand then transforms)
-	    ,(expand else transforms)))
+    (`(quote ,_)
+     expression)
+    (`(lambda ,args . ,body)
+     `(lambda ,args . ,(expand-program body transforms)))
+    
+    (`(if ,condition ,then ,else)
+     `(if ,(expand condition transforms)
+	  ,(expand then transforms)
+	  ,(expand else transforms)))
 
-      (`(if ,condition ,then)
-       `(if ,(expand condition transforms)
-	    ,(expand then transforms)))
-      
-      (`(begin . ,expressions)
-       (let ((expanded (expand-program expressions transforms)))
-	 (match expanded
-	   (`(,single)
-	    single)
-	   (_
-	    `(begin . ,expanded)))))
-      
-      (`(set! ,variable ,value)
-       `(set! ,(expand variable transforms)
-	      ,(expand value transforms)))
-      
-      (`(with-transform () . ,body)
-       (let ((expanded (expand-program body transforms)))
-	 (match expanded
-	   (`(,single)
-	    single)
-	   (_
-	    `(begin . ,expanded)))))
-      
-      (`(with-transform ((,pattern ,template) . ,etc)
-			. ,body)
-       (expand `(with-transform ,etc . ,body)
-	       `((,pattern ,template) . ,transforms)))
-      
-      (`(,operator . ,operands)
-       (let ((transformed (fix transform expression)))
-	 (if (equal? expression transformed)
-	     `(,(expand operator transforms)
-	       . ,(map (lambda (operand)
-			 (expand operand transforms))
-		       operands))
-         ;else
-             (expand transformed transforms))))
-      (_
-       expression)))
-
-
-#|
-    (('is '_ < b)
-     ('lambda (a)
-       ('is a < b)))
-
-    (('is a < '_)
-     ('lambda (b)
-       ('is a < b)))
-
-    (('is a < b)
-     (< a b))
-
-    (('isnt '_ ok?)
-     ('lambda (a)
-       ('not (ok? a))))
-
-    (('isnt a ok?)
-     ('not (ok? a)))
-
-    (('isnt '_ < b)
-     ('lambda (a)
-       ('not ('is a < b))))
-
-    (('isnt a < '_)
-     ('lambda (b)
-       ('not ('is a < b))))
-
-    (('isnt a < b)
-     ('not ('is a < b)))
-|#
+    (`(if ,condition ,then)
+     `(if ,(expand condition transforms)
+	  ,(expand then transforms)))
+    
+    (`(begin . ,expressions)
+     (let ((expanded (expand-program expressions transforms)))
+       (match expanded
+	 (`(,single)
+	  single)
+	 (_
+	  `(begin . ,expanded)))))
+    
+    (`(set! ,variable ,value)
+     `(set! ,(expand variable transforms)
+	    ,(expand value transforms)))
+    
+    (`(with-transform () . ,body)
+     (let ((expanded (expand-program body transforms)))
+       (match expanded
+	 (`(,single)
+	  single)
+	 (_
+	  `(begin . ,expanded)))))
+    
+    (`(with-transform ((,pattern ,template) . ,etc)
+		      . ,body)
+     (expand `(with-transform ,etc . ,body)
+	     `((,pattern ,template) . ,transforms)))
+    
+    (`(,operator . ,operands)
+     (let ((transformed (fix transform expression)))
+       (if (equal? expression transformed)
+	   `(,(expand operator transforms)
+	     . ,(map (lambda (operand)
+		       (expand operand transforms))
+		     operands))
+       ;else
+           (expand transformed transforms))))
+    (_
+     expression)))
 
 (e.g.
  (parameterize ((unique-symbol-counter 0))
@@ -386,3 +363,129 @@
              (> a b)))
 	  (* a 2)))
        5))
+
+
+
+(define is-transform
+  '((('is '_ < b)
+     ('lambda (a)
+       ('is a < b)))
+
+    (('is a < '_)
+     ('lambda (b)
+       ('is a < b)))
+
+    (('is a < b)
+     (< a b))
+    ))
+
+(define isnt-transform
+  '((('isnt '_ ok?)
+     ('lambda (a)
+       ('not (ok? a))))
+
+    (('isnt a ok?)
+     ('not (ok? a)))
+
+    (('isnt '_ < b)
+     ('lambda (a)
+       ('not ('is a < b))))
+
+    (('isnt a < '_)
+     ('lambda (b)
+       ('not ('is a < b))))
+
+    (('isnt a < b)
+     ('not ('is a < b)))
+    ))
+
+(define match-transform
+  '((('match (combination . args) . patterns)
+     ('let ((value (combination . args)))
+       ('match value . patterns)))
+
+    (('match value (pattern . actions) . rest)
+     ('let ((fail ('lambda () ('match value . rest))))
+       ('match-clause value pattern ('begin . actions) (fail))))
+
+    (('match value)
+     ('error ''no-matching-pattern value))
+
+    (('match-clause value '_ sk fk)
+     sk)
+    
+    (('match-clause value ('quote literal) sk fk)
+     ('if ('equal? value ('quote literal))
+	  sk
+	  fk))
+    
+    (('match-clause value ('quasiquote ('unquote identifier)) sk fk)
+     ('let ((identifier value)) sk))
+    
+    (('match-clause value ('quasiquote (head . tail)) sk fk)
+     ('if ('pair? value)
+	  ('let ((first ('car value))
+		 (rest ('cdr value)))
+	    ('match-clause first ('quasiquote head)
+			   ('match-clause rest ('quasiquote tail) sk fk)
+			   fk))
+	  fk))
+
+    (('match-clause value ('quasiquote literal) sk fk)
+     ('if ('equal? value ('quasiquote literal))
+	  sk
+	  fk))
+    
+    (('match-clause value (compound . pattern) sk fk)
+     ('error ''compound-patterns-not-supported '(compound . pattern)))
+
+    (('match-clause value atom sk fk)
+     ('if ('symbol? ('quote atom))
+	  ('let ((atom value))
+	    sk)
+	  ('if ('equal? atom value)
+	       sk
+	       fk)))
+    ))
+
+(e.g.
+ (parameterize ((unique-symbol-counter 0))
+   (expand
+    '(match '(+ 2 3)
+     (`(+ ,a ,b)
+      (+ a b))
+     (_
+      'fail))
+    match-transform))
+ ===> (let ((value~0 (quote (+ 2 3))))
+	(let ((fail~1 (lambda ()
+			(let ((fail~2 (lambda ()
+					(error (quote no-matching-pattern)
+					       value~0))))
+			  (quote fail)))))
+	  (if (pair? value~0)
+	      (let ((first~3 (car value~0))
+		    (rest~4 (cdr value~0)))
+		(if (equal? first~3 (quasiquote +))
+		    (if (pair? rest~4)
+			(let ((first~5 (car rest~4))
+			      (rest~6 (cdr rest~4)))
+			  (let ((a first~5))
+			    (if (pair? rest~6)
+				(let ((first~7 (car rest~6))
+				      (rest~8 (cdr rest~6)))
+				  (let ((b first~7))
+				    (if (equal? rest~8 (quasiquote ()))
+					(+ a b)
+					(fail~1))))
+				(fail~1))))
+			(fail~1))
+		    (fail~1)))
+	      (fail~1)))))
+
+(define convenience-transforms
+  (append
+   core-transforms
+   match-transform
+   is-transform
+   isnt-transform))
