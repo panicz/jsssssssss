@@ -132,3 +132,11 @@
    (define (dup x) (list x x))
    (list x y (dup x) (dup y))))
 
+(begin
+  (define leaky-var 23)
+  (console.log (list 'leaky-var 'is leaky-var 'inside 'begin)))
+
+(console.log (list 'leaky-var 'is leaky-var 'outside 'begin 'too))
+
+(define (stupid x) (begin (console.log 'makes-no-sense-but-works) x))
+(console.log (stupid (+ 2 3)))
