@@ -149,3 +149,11 @@
          (cons x y)))
 
 (console.log (list 'expecting '(5 . 25) 'here (fooo)))
+
+(define (fooooo)
+  (console.log 'even-better?)
+  (begin (define x (+ 2 3))
+         (define y (* x x))
+         (cons x y)))
+
+(console.log (list 'expecting '(5 . 25) 'here 'as 'well (fooooo)))
