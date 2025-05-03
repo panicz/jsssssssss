@@ -57,38 +57,33 @@
 (define (mk-silly n) (lambda (x) (cons x n)))
 (console.log (map (lambda (f) (f 'const)) (map mk-silly (iota 5)))) ;; gr8!
 
+(define (list . x) x)
+
 (define x 23)
 (define (foo x) ((lambda (_) (* x x)) (set! x 10)))
-(console.log '(expecting 100:))
-(console.log (foo x))
-(console.log '(expecting 23:))
-(console.log x)
+(console.log (list 'expecting 100 'here: (foo x)))
+(console.log (list 'expecting 23 'here: x))
 
 (define x 23)
 (define (boo y) ((lambda (_) (* y y)) (set! x 10)))
-(console.log '(expecting 529:))
-(console.log (boo x))
-(console.log '(expecting 10:))
-(console.log x)
+(console.log (list 'expecting 529 'here: (boo x)))
+(console.log (list 'and 10 'here: x))
 
-(console.log ((if #t + *) 2 3))
-(console.log ((if #f + *) 2 3))
-(console.log (if '() 'ok 'nope))
-(console.log (if '(woo) 'ok 'nope))
+(console.log (list 'expecting 5 'here: ((if #t + *) 2 3)))
+(console.log (list 'expecting 6 'here: ((if #f + *) 2 3)))
+(console.log (if '() 'if-is-ok 'nope))
+(console.log (if '(woo) 'if-is-ok 'nope))
 
-(console.log (eq? 'lambda (car ((lambda lambda lambda) 'lambda)))) ;; niiice!
+(console.log (if (eq? 'lambda (car ((lambda lambda lambda) 'lambda))) 'nice 'boo))
 ;;(console.log ((lambda (if) (if 'p 'c 'a)) (lambda (a b c) (cons a (cons b (cons c '())))))) ;; oww, to-js needs to be aware of bound symbols then...
 
 (console.log '(now something really stupid, overwrite + with *))
 (define old-+ +)
 (set! + *)
-(define list (lambda x x))
+
 (console.log (list '(+ 2 3) 'is 'now (+ 2 3)))
 (set! + old-+)
 (console.log (list 'and 'now '(+ 2 3) 'is (+ 2 3) 'again))
-
-
-(define (list . x) x)
 
 (define evil 13)
 (console.log (list 13 'is evil))
@@ -103,6 +98,7 @@
 (console.log '(define (foo x) (+ x x)))
 (console.log (list 'and 'now '(foo 3) 'is (foo 3)))
 
+(console.log '(expecting 25 below:))
 (console.log
  ((lambda ()
     (define (sq x) (* x x))
@@ -110,7 +106,7 @@
     (sq x))))
 
 (console.log
- (list 'expecting 9 'here: 
+ (list 'expecting 9 'here:
        ((lambda (x)
           (console.log 'ple-ple-ple)
           (define (skwyr x) (* x x))
@@ -139,4 +135,17 @@
 (console.log (list 'leaky-var 'is leaky-var 'outside 'begin 'too))
 
 (define (stupid x) (begin (console.log 'makes-no-sense-but-works) x))
-(console.log (stupid (+ 2 3)))
+(stupid (+ 2 3))
+
+(define (evil x) (console.log 'elo) (begin (set! x 7) (* x x)))
+(console.log (list 'expecting 49 'here (evil 3)))
+
+(define (evil* x) (console.log 'elo) (begin (set! x 7) (* x x)) (console.log 'hahaha) 42)
+(console.log (list 'expecting 42 'here (evil* 3)))
+
+(define (fooo)
+  (begin (define x (+ 2 3)) ;; nb Scheme48 doesn't like this (syntax violation)
+         (define y (* x x))
+         (cons x y)))
+
+(console.log (list 'expecting '(5 . 25) 'here (fooo)))

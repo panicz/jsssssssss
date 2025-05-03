@@ -125,6 +125,8 @@
 
 (define (sequence-to-js seq)
   (match seq
+    (`((begin . ,code) . ,code*)
+     (sequence-to-js `(,@code ,@code*)))
     (`(,exp)
      (string-append "return " (to-js exp) ";"))
     (`(,exp . ,seq*)
