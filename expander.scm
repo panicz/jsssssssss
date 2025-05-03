@@ -1,18 +1,14 @@
 (define-module (expander)
-  #:use-module (ice-9 match)
   #:use-module (base)
   #:export (expand
 	    expand-program
 	    core-transforms))
 
-(define (...? s)
-  (eq? s '...))
-
 (define (used-symbols expression)
   (match expression
     (`(quote ,literal)
      '())
-    (`(,repeated ,(? ...?) . ,rest)
+    (`(,repeated ... . ,rest)
      (union (used-symbols repeated)
 	    (used-symbols rest)))
     (`(,head . ,tail)
@@ -59,8 +55,11 @@
     ))
 
 (define let*-transform
-  '((('let* () . body)
-     ('begin . body))
+  '((('let* () expression)
+     expression)
+
+    (('let* () . body)
+     ('let () . body))
 
     (('let* ((name-1 value-1)
   	     (name-2 value-2) ...)
@@ -81,8 +80,14 @@
      ('define name ('lambda args . body)))
     ))
 
+(define single-begin-lambda-transform
+  '((('lambda args ('begin . body))
+     ('lambda args . body))
+    ))
+
 (define core-transforms
   (append
+   single-begin-lambda-transform
    and-transform
    or-transform
    define-transform
@@ -95,7 +100,7 @@
     (`(quote ,literal)
      (and (equal? form literal)
           bound-variables))
-    (`(,repetition ,(? ...?) . ,remaining)
+    (`(,repetition ... . ,remaining)
      (bind-sequence repetition remaining form
                     bound-variables))
     (`(,head/pattern . ,tail/pattern)
@@ -136,14 +141,18 @@
   (fold-left merge-bindings bindings bindings*))
 
 (define (zip-bindings list-of-bindings)
-  (match list-of-bindings
-    ((((names . values) ...) ...)
-     (assert (apply equal? names))
-     (match names
-       (`(,names . ,_)
-        (apply map list names values))
-       ('()
-        '())))))
+  (let ((names (map (lambda (bindings)
+		      (map car bindings))
+		    list-of-bindings))
+	(values (map (lambda (bindings)
+		       (map cdr bindings))
+		     list-of-bindings)))
+    (assert (apply equal? names))
+    (match names
+      (`(,names . ,_)
+       (apply map list names values))
+      ('()
+       '()))))
 
 (e.g.
  (zip-bindings '(((a . 1) (b . 2) (c . 3))
@@ -171,10 +180,11 @@
     (if (or result (null? prefix))
         result
     ;else
-	(match prefix
-	  ((initial ... last)
-	   (carry #;from initial #;to `(,last . ,suffix)
-                        #;until success?))))))
+	(let* ((n (length prefix))
+	       (initial (take (- n 1) prefix))
+	       (last (car (drop (- n 1) prefix))))
+	  (carry #;from initial #;to `(,last . ,suffix)
+                        #;until success?)))))
 
 (define (bind-sequence repeated-pattern remaining-pattern
                        form bound-variables)
@@ -212,7 +222,7 @@
   (match template
     (`(quote ,literal)
      literal)
-    (`(,repeated ,(? ...?) . ,rest)
+    (`(,repeated ... . ,rest)
      `(,@(fill-sequence repeated bindings)
        . ,(fill-template rest #;with bindings)))
     (`(,head . ,tail)
@@ -296,9 +306,10 @@
   (match expression
     (`(quote ,_)
      expression)
+
     (`(lambda ,args . ,body)
      `(lambda ,args . ,(expand-program body transforms)))
-    
+
     (`(if ,condition ,then ,else)
      `(if ,(expand condition transforms)
 	  ,(expand then transforms)
@@ -356,15 +367,13 @@
 	   core-transforms))
  ===> ((lambda (a)
 	 ((lambda (b)
-            ((lambda (result~0)
-               (if result~0
+	    ((lambda (result~0)
+	       (if result~0
 		   result~0
 		   (+ a b)))
-             (> a b)))
+	     (> a b)))
 	  (* a 2)))
        5))
-
-
 
 (define is-transform
   '((('is '_ < b)

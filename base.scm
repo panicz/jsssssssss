@@ -1,7 +1,7 @@
 (define-module (base)
-  #:use-module (ice-9 match)
   #:export-syntax (e.g.
 		   assert
+		   match
 		   for
 		   is
 		   isnt)
@@ -48,6 +48,59 @@
        result))))
 
 (assert (= (+ 2 2) 4))
+
+(define-syntax match-clause
+  (syntax-rules (quote quasiquote unquote _)
+    ((match-clause value _ sk fk)
+     sk)
+    
+    ((match-clause value 'literal sk fk)
+     (if (equal? value 'literal)
+	 sk
+	 fk))
+    
+    ((match-clause value `,identifier sk fk)
+     (let ((identifier value)) sk))
+    
+    ((match-clause value `(head . tail) sk fk)
+     (if (pair? value)
+	 (let ((first (car value))
+	       (rest (cdr value)))
+	   (match-clause first `head
+			 (match-clause rest `tail sk fk)
+			 fk))
+	 fk))
+
+    ((match-clause value `literal sk fk)
+     (if (equal? value `literal)
+	 sk
+	 fk))
+    
+    ((match-clause value (compound . pattern) sk fk)
+     (syntax-error 'compound-patterns-not-supported '(compound . pattern)))
+
+    ((match-clause value atom sk fk)
+     (if (symbol? 'atom)
+	 (let ((atom value))
+	   sk)
+	 (if (equal? atom value)
+	     sk
+	     fk)))
+    ))
+    
+(define-syntax match
+  (syntax-rules (quote quasiquote unquote _)
+    ((match (combination . args) . patterns)
+     (let ((value (combination . args)))
+       (match value . patterns)))
+
+    ((match value (pattern . actions) . rest)
+     (let ((fail (lambda () (match value . rest))))
+       (match-clause value pattern (begin . actions) (fail))))
+
+    ((match value)
+     (error 'no-matching-pattern value))
+    ))
 
 (define (fold-left f init l)
   (match l

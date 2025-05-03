@@ -1,7 +1,6 @@
 #!/usr/bin/guile \
 -L . -s
 !#
-(import (ice-9 match))
 (import (ice-9 string-fun))
 (import (ice-9 textual-ports))
 (import (base))
@@ -78,7 +77,7 @@
   (match expression
     (`(lambda ,args . ,body)
      (string-append
-      "(("(args-to-js args)")=> {" (sequence-to-js body) "})"))
+      "(("(args-to-js args)")=>{" (sequence-to-js body) "})"))
 
     (`(if ,test ,then ,else)
      (string-append
@@ -93,7 +92,7 @@
       ":("(to-js then)"))"))
 
     (`(begin . ,operations)
-     (string-append "{" (string-join (map to-js operations) ";") "}"))
+     (string-append (string-join (map to-js operations) ";")))
      
     (`(set! ,variable ,expression)
      (string-append
@@ -128,6 +127,9 @@
 (let* ((program (read-all))
        (expressions (expand-program program core-transforms)))
   (for expression in expressions
+    (display "// ")
+    (display expression)
+    (newline)
     (display (to-js expression))
     (display ";")
     (newline)))
