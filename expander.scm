@@ -85,6 +85,28 @@
      ('lambda args . body))
     ))
 
+(define quasiquote-transform 
+  '((('quasiquote ('unquote form))
+     form)
+
+    (('quasiquote (('unquote-splicing form) . rest)) 
+     ('append form ('quasiquote rest)))
+
+    (('quasiquote ('quasiquote form) . depth) 
+     ('list ('quote 'quasiquote) ('quasiquote form nest . depth)))
+
+    (('quasiquote ('unquote form) x . depth) 
+     ('list ('quote 'unquote) ('quasiquote form . depth)))
+
+    (('quasiquote ('unquote-splicing form) nest . depth) 
+     ('list ('quote 'unquote-splicing) ('quasiquote form . depth)))
+
+    (('quasiquote (car . cdr) . depth) 
+     ('cons ('quasiquote car . depth) ('quasiquote cdr . depth)))
+
+    (('quasiquote atom . depth) 
+     ('quote atom))))
+
 (define core-transforms
   (append
    single-begin-lambda-transform
@@ -92,7 +114,9 @@
    or-transform
    define-transform
    let-transform
-   let*-transform))
+   let*-transform
+   quasiquote-transform
+   ))
 
 (define (bind pattern #;to form
 	      #;given bound-variables)
@@ -282,6 +306,12 @@
     
     (`((define-transform ,pattern ,template) . ,rest)
      (expand-program rest `((,pattern ,template) . ,transforms)))
+
+    (`((begin . ,subprogram))
+     (expand-program subprogram transforms))
+
+    (`((begin . ,subprogram) . ,rest)
+     (expand-program `(,@subprogram . ,rest) transforms))
 
     (`(,expression . ,expressions)
      `(,(expand expression transforms) . ,(expand-program expressions transforms)))))

@@ -18,6 +18,8 @@ var internal = {
                  (typeof(x.car) != 'undefined' &&
                   typeof(x.cdr) != 'undefined')),
   is_procedure: x => typeof(x) == 'function',
+  append: (...xs) => xs.length == 0 ? [] : xs[0].concat(...xs.slice(1)),
+  list: (...xs) => xs,
   add: (...xs) => xs.reduce((n,m) => n+m, 0),
   sub: (...xs) => xs.length>1 ? xs.reduce((n,m) => n-m) : -xs[0],
   mul: (...xs) => xs.reduce((n,m) => n*m, 1),
@@ -99,4 +101,6 @@ var s__$Ls = internal.lt
 var s__$Gt$Eq = internal.gteq
 var s__$Ls$Eq = internal.lteq
 var s__apply = internal.app
+var s__append = internal.append
+var s__list = internal.list
 var s__console$Dtlog = internal.console_log
