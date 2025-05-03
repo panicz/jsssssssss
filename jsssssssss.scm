@@ -75,6 +75,14 @@
 
 (define (to-js expression)
   (match expression
+
+    (`(lambda ,args (begin . ,body))
+     (to-js `(lambda ,args . ,body))) ;; :o~~~
+
+    (`(lambda ,args ,body)
+     (string-append
+      "(("(args-to-js args)")=>" (to-js body) ")"))
+
     (`(lambda ,args . ,body)
      (string-append
       "(("(args-to-js args)")=>{" (sequence-to-js body) "})"))
