@@ -9,28 +9,29 @@
 (define preamble (call-with-input-file "preamble.js" get-string-all))
 
 (define (symbol->js expression)
-  (string-append "s__"
-                 (fold-left (lambda (string substitution)
-	                          (apply string-replace-substring
-		                             string
-		                             substitution))
-	                        (symbol->string expression)
-	                        '(("+" "$Pl")
-	                          ("-" "$Mn")
-	                          ("*" "$St")
-	                          ("/" "$Sl")
-	                          ("<" "$Ls")
-	                          (">" "$Gt")
-	                          ("=" "$Eq")
-	                          ("!" "$Ex")
-	                          ("%" "$Pc")
-	                          ("?" "$Qu")
-				  ("@" "$At")
-				  ("~" "$Tl")
-				  ("&" "$Am")
-				  ("#" "$Nm")
-				  ("." "$Dt")
-				  ))))
+  (fold-left (lambda (string substitution)
+	       (apply string-replace-substring
+		      string
+		      substitution))
+	     (let ((initial (symbol->string expression)))
+	       (if (char-numeric? (string-ref initial 0))
+		   (string-append "$N" initial)
+		   initial))
+	     '(("+" "$Pl")
+	       ("-" "$Mn")
+	       ("*" "$St")
+	       ("/" "$Sl")
+	       ("<" "$Ls")
+	       (">" "$Gt")
+	       ("=" "$Eq")
+	       ("!" "$Ex")
+	       ("%" "$Pc")
+	       ("?" "$Qu")
+	       ("@" "$At")
+	       ("~" "$Tl")
+	       ("&" "$Am")
+	       ("#" "$Nm")
+	       )))
 
 (define (string-escape string)
   (fold-left (lambda (string substitution)
@@ -93,7 +94,7 @@
       ":("(to-js then)"))"))
 
     (`(begin . ,operations)
-     (string-append (string-join (map to-js operations) ";")))
+     (to-js `((lambda () . ,operations))))
      
     (`(set! ,variable ,expression)
      (string-append

@@ -18,3 +18,14 @@
 (console.log (c))
 (console.log (c))
 (console.log (c))
+
+(define p (make-parameter 0))
+
+(console.log (p))
+
+(parameterize ((p 10))
+  (console.log (p))
+  (p (+ (p) 1))
+  (console.log (p)))
+
+(console.log (p))

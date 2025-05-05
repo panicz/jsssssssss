@@ -2,7 +2,8 @@
   #:use-module (base)
   #:export (expand
 	    expand-program
-	    core-transforms))
+	    core-transforms
+	    convenience-transforms))
 
 (define (used-symbols expression)
   (match expression
@@ -80,11 +81,6 @@
      ('define name ('lambda args . body)))
     ))
 
-(define single-begin-lambda-transform
-  '((('lambda args ('begin . body))
-     ('lambda args . body))
-    ))
-
 (define quasiquote-transform 
   '((('quasiquote ('unquote form))
      form)
@@ -107,15 +103,25 @@
     (('quasiquote atom . depth) 
      ('quote atom))))
 
+(define parameterize-transform
+  '((('parameterize ((parameter value) ...) . body)
+     ('begin
+       ('push-parameter parameter value)
+       ...
+       ('let ((result ('begin . body)))
+	 ('pop-parameter parameter)
+	 ...
+	 result)))))
+
 (define core-transforms
   (append
-   single-begin-lambda-transform
    and-transform
    or-transform
    define-transform
    let-transform
    let*-transform
    quasiquote-transform
+   parameterize-transform
    ))
 
 (define (bind pattern #;to form
