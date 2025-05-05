@@ -5,6 +5,7 @@
 (import (ice-9 textual-ports))
 (import (base))
 (import (expander))
+(import (transforms))
 
 (define preamble (call-with-input-file "preamble.js" get-string-all))
 
