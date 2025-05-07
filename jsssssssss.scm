@@ -60,6 +60,22 @@
     (string-append
      "{car: "(js-representation (car lisp-data))
      ", cdr: "(js-representation (cdr lisp-data))"}"))
+   ((char? lisp-data)
+    (string-append 
+     "{char: '"
+     (match lisp-data
+       ('#\' "\\'")
+       ('#\\ "\\\\")
+       ('#\newline "\\n")
+       (c (let ((n (char->integer c)))
+	    (if (is n < 32)
+		(string-append
+		 "\\x"(if (is n < 16)
+			  "0"
+			  "")
+		 (number->string n 16))
+		(list->string (list c))))))
+     "'}"))
    ((string? lisp-data)
     (string-append "\"" (string-escape lisp-data) "\""))))
 
@@ -131,7 +147,7 @@
        (expressions (expand-program program core-transforms)))
   (for expression in expressions
     (display "// ")
-    (display expression)
+    (write expression)
     (newline)
     (display (to-js expression))
     (display ";")

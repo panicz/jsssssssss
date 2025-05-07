@@ -22,13 +22,10 @@ var procedure$Qu = x => typeof(x) == 'function';
 var input$Mnport$Qu = x => typeof(x) == 'object'
     && typeof(x.readChar) == 'procedure'
     && typeof(x.peekChar) == 'procedure'
-    && typeof(x.charReady) == 'procedure'
-    && typeof(x.close) == 'procedure';
+    && typeof(x.charReady) == 'procedure';
 
 var output$Mnport$Qu = x => typeof(x) == 'object'
-    && typeof(x.writeChar) == 'procedure'
-    && typeof(x.writeString) == 'procedure'
-    && typeof(x.close) == 'procedure';
+    && typeof(x.writeChar) == 'procedure';
 
 const __EOF = {char: false};
 
@@ -88,12 +85,13 @@ var serialize = e => {
       return "(" + serialize(e.car) + " . "
           + serialize(e.cdr) + ")";
   case procedure$Qu(e): return "#<procedure>";
+  case input$Mnport$Qu(e): return "#<input-port>";
+  case output$Mnport$Qu(e): return "#<output-port>";
   default: return "#<something strange>";
   }
 };
 
 var writeln = e => { console.log(serialize(e)) ; return e };
-
 var make$Mnparameter = (init) => {
     var stack = [init];
     var accessor = (...args) => {
@@ -107,16 +105,85 @@ var make$Mnparameter = (init) => {
     return accessor;
 };
 
+
+
 var push$Mnparameter = (parameter, value) => parameter.stack.push(value);
 var pop$Mnparameter = (parameter) => parameter.stack.pop();
 
+class InputStringPort {
+    constructor(string) {
+	this.string = string;
+	this.tip = 0;
+    }
+
+    readChar() {
+	if (this.tip >= this.string.length) {
+	    return __EOF;
+	}
+	return {char: this.string[this.tip++]};
+    }
+    
+    peekChar() {
+	return {char: string[tip]};	
+    }
+    
+    charReady() {
+	return tip < string.length;
+    }
+};
+
+class OutputStringPort {
+    constructor() {
+	this.string = "";
+    }
+    writeChar(c) {
+	this.string += c.char;
+    }
+};
+
 var current$Mninput$Mnport = make$Mnparameter("not implemented yet");
 var current$Mnoutput$Mnport = make$Mnparameter("not implemented yet");
+
+var call$Mnwith$Mninput$Mnstring = (string, f) => {
+    return f(new InputStringPort(string));
+};
+
+var call$Mnwith$Mnoutput$Mnstring = (f) => {
+    let p = new OutputStringPort();
+    f(p);
+    return p.string;
+};
+
+var with$Mninput$Mnfrom$Mnstring = (string, f) => {
+    let p = new InputStringPort(string);
+    push$Mnparameter(current$Mninput$Mnport, p);
+    try {
+	var result = f();
+    }
+    finally {
+	pop$Mnparameter(current$Mninput$Mnport);
+    }
+    return result;
+};
+
+var with$Mnoutput$Mnto$Mnstring = (f) => {
+    let p = new OutputStringPort();
+    push$Mnparameter(current$Mnoutput$Mnport, p);
+    try {
+	f();
+    }
+    finally {
+	pop$Mnparameter(current$Mnoutput$Mnport);
+    }
+    return p.string;
+};
 
 var read$Mnchar = (p = current$Mninput$Mnport()) => p.readChar();
 var peek$Mnchar = (p = current$Mninput$Mnport()) => p.peekChar();
 var char$Mnready$Qu = (p = current$Mninput$Mnport()) => p.charReady();
 var close$Mninput$Mnport = p => p.close();
 
-var write$Mnchar = (c, p = current$Mnoutput$Mnport()) => p.writeChar(c)
+var write$Mnchar = (c, p = current$Mnoutput$Mnport()) => p.writeChar(c);
+var newline = (p = current$Mnoutput$Mnport()) => p.writeChar({char: '\n'});
+
 var close$Mnoutput$Mnport = p => p.close();

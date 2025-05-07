@@ -29,3 +29,9 @@
   (console.log (p)))
 
 (console.log (p))
+
+(console.log (call-with-output-string (lambda (p)
+					(write-char #\d p)
+					(write-char #\u p)
+					(write-char #\p p)
+					(write-char #\a p))))
