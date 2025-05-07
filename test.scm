@@ -44,20 +44,35 @@
 
 (console.log
  (call-with-input-string "dupa"
-   (lambda (p)
+   (lambda (input)
      (list->string
-      (list
-       (read-char p)
-       (read-char p)
-       (read-char p)
-       (read-char p))))))
+      (let* ((d (read-char input))
+	     (u (read-char input))
+	     (p (read-char input))
+	     (a (read-char input)))
+	(list d u p a))))))
 
 (console.log
  (with-input-from-string "dupa"
    (lambda ()
      (list->string
-      (list
-       (read-char)
-       (read-char)
-       (read-char)
-       (read-char))))))
+      (let* ((d (read-char))
+	     (u (read-char))
+	     (p (read-char))
+	     (a (read-char)))
+	(list d u p a))))))
+
+;; the following test only runs when invoking
+;;
+;;   $ ./jsssssssss.scm < test.scm > test.js
+;;   $ node test.js
+;;
+;; and breaks when invoked as
+;;
+;;   $ ./jsssssssss.scm < test.scm | node
+;;
+;; (which isn't that bad after all)
+
+(console.log "type any key and press enter:")
+(let ((c (read-char)))
+  (console.log (string-append "you typed: " (serialize c))))

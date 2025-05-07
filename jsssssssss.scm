@@ -144,7 +144,7 @@
 (display preamble)
 
 (let* ((program (read-all))
-       (expressions (expand-program program core-transforms)))
+       (expressions (expand-program program convenience-transforms)))
   (for expression in expressions
     (display "// ")
     (write expression)

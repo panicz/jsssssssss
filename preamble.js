@@ -3,24 +3,34 @@ var mk_seq_rel = rel => (...xs) => {
 	if(!rel(xs[i-1], xs[i])) return false;
     }
     return true;
-}
+};
 
 var cons = (h,t) => Array.isArray(t) ? [h].concat(t) : {car: h, cdr: t};
+
 var car = p => Array.isArray(p) ? p[0] : p.car;
+
 var cdr = p => Array.isArray(p) ? p.slice(1) : p.cdr;
+
 var null$Qu = x => Array.isArray(x) && !x.length;
+
 var boolean$Qu = x => typeof(x) == 'boolean';
+
 var number$Qu = x => typeof(x) == 'number';
+
 var char$Qu = x => typeof(x) == 'object'
     && typeof(x.char) == 'string'
     && x.char.length == 1;
+
 var string$Qu = x => typeof(x) == 'string';
+
 var symbol$Qu = x => typeof(x) == 'object'
     && typeof(x.symbol) == 'string';
+
 var pair$Qu = x => typeof(x) == 'object'
     && ((Array.isArray(x) && x.length>0)
 	|| (typeof(x.car) != 'undefined'
 	    && typeof(x.cdr) != 'undefined'));
+
 var procedure$Qu = x => typeof(x) == 'function';
 
 var input$Mnport$Qu = x => typeof(x) == 'object'
@@ -29,7 +39,8 @@ var input$Mnport$Qu = x => typeof(x) == 'object'
     && typeof(x.charReady) == 'procedure';
 
 var output$Mnport$Qu = x => typeof(x) == 'object'
-    && typeof(x.writeChar) == 'procedure';
+    && typeof(x.writeChar) == 'procedure'
+    && typeof(x.writeString) == 'procedure';
 
 const __EOF = {char: false};
 
@@ -44,23 +55,37 @@ var eqv$Qu = mk_seq_rel(
 	|| (number$Qu(a) && number$Qu(b) && a == b)
 	|| a === b
 );
+
 var eq$Qu = eqv$Qu;
+
 var $Eq = eq$Qu;
+
 var $Pl = (...xs) => xs.reduce((n,m) => n+m, 0);
+
 var $Mn = (...xs) => xs.length>1 ? xs.reduce((n,m) => n-m) : -xs[0];
+
 var $St = (...xs) => xs.reduce((n,m) => n*m, 1);
+
 var $Sl = (...xs) => xs.length>1 ? xs.reduce((n,m) => n/m, 1) : 1/xs[0];
+
 var not = x => !x;
+
 var $Gt = mk_seq_rel((n,m) => n > m);
+
 var $Ls = mk_seq_rel((n,m) => n < m);
+
 var $Gt$Eq = mk_seq_rel((n,m) => n >= m);
+
 var $Ls$Eq = mk_seq_rel((n,m) => n <= m);
+
 var apply = (f, ...args) => {
     var collected = args.slice(0, args.length-1)
         .concat(args[args.length-1]);
     return f.apply(null, collected);
 };
+
 var append = (...xs) => xs.length == 0 ? [] : xs[0].concat(...xs.slice(1));
+
 var list = (...xs) => xs;
 
 var symbol$Mn$Gtstring = s => s.symbol.replace(/^[$]N([0-9])/, "$1")
@@ -79,6 +104,10 @@ var symbol$Mn$Gtstring = s => s.symbol.replace(/^[$]N([0-9])/, "$1")
     .replace(/[$]Nm/g, "#");
 
 var list$Mn$Gtstring = s => s.map(c => c.char).join('');
+
+var string$Mn$Gtlist = s => s.map((c) => {char: c});
+
+var string$Mnappend = (...args) => args.join('');
 
 let charName = c => {
     let i = c.char.codePointAt(0);
@@ -99,17 +128,19 @@ var serialize = e => {
     case char$Qu(e): return "#\\"+charName(e);
     case symbol$Qu(e): return symbol$Mn$Gtstring(e);
     case pair$Qu(e):
-	if(Array.isArray(e)) return "(" + e.map(serialize).join(" ") + ")";
+	if(Array.isArray(e))
+	    return "("+e.map(serialize).join(" ")+")";
 	return "(" + serialize(e.car) + " . "
             + serialize(e.cdr) + ")";
     case procedure$Qu(e): return "#<procedure>";
     case input$Mnport$Qu(e): return "#<input-port>";
     case output$Mnport$Qu(e): return "#<output-port>";
-    default: return "#<something strange>";
+    default: return "#<"+typeof(e)+">";
     }
 };
 
 var writeln = e => { console.log(serialize(e)) ; return e };
+
 var make$Mnparameter = (init) => {
     var stack = [init];
     var accessor = (...args) => {
@@ -123,9 +154,8 @@ var make$Mnparameter = (init) => {
     return accessor;
 };
 
-
-
 var push$Mnparameter = (parameter, value) => parameter.stack.push(value);
+
 var pop$Mnparameter = (parameter) => parameter.stack.pop();
 
 class InputStringPort {
@@ -142,7 +172,7 @@ class InputStringPort {
     }
     
     peekChar() {
-	return {char: string[tip]};	
+	return {char: string[tip]};
     }
     
     charReady() {
@@ -157,10 +187,89 @@ class OutputStringPort {
     writeChar(c) {
 	this.string += c.char;
     }
+    writeString(s) {
+	this.string += s;
+    }
 };
 
-var current$Mninput$Mnport = make$Mnparameter("not implemented yet");
-var current$Mnoutput$Mnport = make$Mnparameter("not implemented yet");
+let fs = (typeof(require) == 'function')
+    ? require('fs')
+    : {
+	readSync: (fd, buffer) => { buffer[0]='?'; },
+	writeSync: (fd, string) => {console.log(string);},
+	closeSync: (fd) => {},
+    };
+
+class InputFilePort {
+    constructor(fd) {
+	this.fd = fd;
+	this.buffer = (typeof(Buffer) == 'undefined')
+	    ? []
+	    : Buffer.alloc(1);
+	this.charsUnread = [];
+    }
+    
+    readChar() {
+	if (this.charsUnread.length > 0) {
+	    return this.buffer.pop();
+	}
+	
+	let bytesRead = fs.readSync(this.fd, this.buffer);
+	if (bytesRead < 1) {
+	    return __EOF;
+	}
+	return {char: this.buffer.toString('utf8')};
+    }
+
+    unreadChar(c) {
+	this.buffer.push(c);
+    }
+    
+    peekChar() {
+	let c = this.readChar()
+	this.unreadChar(c);
+	return c;
+    }
+    
+    charReady() {
+	if (this.charsUnread.length > 0) {
+	    return true;
+	}
+	return; // TODO przemyslenia
+    }
+
+    close() {
+	return fs.closeSync(this.fd);
+    }
+
+};
+
+class OutputFilePort {
+    constructor(fd) {
+	this.fd = fd;
+    }
+    writeChar(c) {
+	return fs.writeSync(this.fd, c.char);
+    }
+    writeString(s) {
+	return fs.writeSync(this.fd, s);
+    }
+    close() {
+	return fs.closeSync(this.fd);
+    }
+};
+
+let stdin = new InputFilePort(0);
+
+let stdout = new OutputFilePort(1);
+
+let stderr = new OutputFilePort(2);
+
+var current$Mninput$Mnport = make$Mnparameter(stdin);
+
+var current$Mnoutput$Mnport = make$Mnparameter(stdout);
+
+var current$Mnerror$Mnport = make$Mnparameter(stderr);
 
 var call$Mnwith$Mninput$Mnstring = (string, f) => {
     return f(new InputStringPort(string));
@@ -197,11 +306,17 @@ var with$Mnoutput$Mnto$Mnstring = (f) => {
 };
 
 var read$Mnchar = (p = current$Mninput$Mnport()) => p.readChar();
+
 var peek$Mnchar = (p = current$Mninput$Mnport()) => p.peekChar();
+
 var char$Mnready$Qu = (p = current$Mninput$Mnport()) => p.charReady();
+
 var close$Mninput$Mnport = p => p.close();
 
 var write$Mnchar = (c, p = current$Mnoutput$Mnport()) => p.writeChar(c);
+
+var write$Mnstring = (s, p = current$Mnoutput$Mnport()) => p.writeString(s);
+
 var newline = (p = current$Mnoutput$Mnport()) => p.writeChar({char: '\n'});
 
 var close$Mnoutput$Mnport = p => p.close();
