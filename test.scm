@@ -62,6 +62,11 @@
 	     (a (read-char)))
 	(list d u p a))))))
 
+(writeln (current-output-port))
+(writeln current-output-port)
+
+(writeln "a'\"\\b")
+
 ;; the following test only runs when invoking
 ;;
 ;;   $ ./jsssssssss.scm < test.scm > test.js

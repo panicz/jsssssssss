@@ -103,6 +103,10 @@ var symbol$Mn$Gtstring = s => s.symbol.replace(/^[$]N([0-9])/, "$1")
     .replace(/[$]Tl/g, "~")
     .replace(/[$]Nm/g, "#");
 
+let escape_string = (s) => s
+    .replace(/\\/g, "\\\\")
+    .replace(/\"/g, "\\\"");
+
 var list$Mn$Gtstring = s => s.map(c => c.char).join('');
 
 var string$Mn$Gtlist = s => s.map((c) => {char: c});
@@ -127,15 +131,22 @@ var serialize = e => {
     case number$Qu(e): return "" + e;
     case char$Qu(e): return "#\\"+charName(e);
     case symbol$Qu(e): return symbol$Mn$Gtstring(e);
+    case string$Qu(e): return '"'+escape_string(e)+'"';
     case pair$Qu(e):
 	if(Array.isArray(e))
 	    return "("+e.map(serialize).join(" ")+")";
 	return "(" + serialize(e.car) + " . "
             + serialize(e.cdr) + ")";
-    case procedure$Qu(e): return "#<procedure>";
-    case input$Mnport$Qu(e): return "#<input-port>";
-    case output$Mnport$Qu(e): return "#<output-port>";
-    default: return "#<"+typeof(e)+">";
+    case procedure$Qu(e): return "#<"+e.toString()+">";
+    case eof$Mnobject$Qu(e): return "#<eof-object>"
+    default:
+	if (typeof(e) == 'object') {
+	    if (e.constructor.name == "Object") {
+		return "#<"+JSON.stringify(e)+">";
+	    }
+	    return "#<"+e.constructor.name+JSON.stringify(e)+">";
+	}
+	return "#<"+typeof(e)+">";
     }
 };
 
