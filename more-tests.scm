@@ -1,8 +1,11 @@
 (writeln '(1 2 3 yes we do serialize ok! (o . -)))
 (writeln '<%%!!weird-=-symbol??%%>)
+(writeln (quote 'hehe))
+(writeln (quote ''quote))
 
-(writeln (if (eq? () ()) 'ok '(nil != nil wtf)))
-(writeln (if (eq? () (cdr '(test))) 'ok '(nil != nil again)))
+(writeln (if (eq? '() '()) 'ok '(nil != nil wtf)))
+(writeln (if (eq? '() (cdr '(test))) 'ok '(nil != nil again)))
+(writeln (if (eq? '() #f) '(false aint null) 'ok))
 
 (writeln (if (eq? 'hey 'hey) 'ok '(symbol equality broken)))
 (writeln (if (eq? 'hey 'ho) '(symbol equality broken) 'ok))
@@ -11,7 +14,7 @@
 (writeln (if (eq? #t (null? '())) 'ok '(eq or null sucks)))
 (writeln (if (eq? #f (pair? '())) 'ok '(eq or pair sucks)))
 
-(writeln (if (null? ()) 'ok '(null bad)))
+(writeln (if (null? '()) 'ok '(null bad)))
 (writeln (if (null? #f) '(false aint null) 'ok))
 
 (writeln (if (pair? (cons 2 3)) 'ok '(pair bad)))
@@ -51,28 +54,41 @@
 (define (iota n) (shmota n '()))
 (writeln (iota 1000)) ;;; with 10k it fails ofc
 
-(define (map f xs) (if (null? xs) '() (cons (f (car xs)) (map f (cdr xs)))))
-(writeln (map (lambda (x) (* x x)) (iota 10)))
+(define (map1 f xs) (if (null? xs) '() (cons (f (car xs)) (map1 f (cdr xs)))))
+(writeln (map1 (lambda (x) (* x x)) (iota 10)))
 
 (define (mk-silly n) (lambda (x) (cons x n)))
-(writeln (map (lambda (f) (f 'const)) (map mk-silly (iota 5)))) ;; gr8!
+(writeln (map1 (lambda (f) (f 'const)) (map1 mk-silly (iota 5)))) ;; gr8!
+
+(define (list . x) x)
+(writeln (list 'list 'works 'ok!))
+
+(define (ogon a b . c) c)
+(writeln (list 'expected '(i l) 'here: (ogon 't 'a 'i 'l)))
+
+(define (map f . xs)
+  (if (pair? (car xs))
+      (cons (apply f (map1 car xs))
+            (apply map f (map1 cdr xs)))
+      '()))
+
+(writeln (map (lambda (x) (* x x)) (iota 10)))
+(writeln (map cons '(a b c d) '(1 2 3 4)))
+(writeln (apply map list '((a b c) (d e f))))
+(writeln (apply apply (list map list '((a b c) (1 2 3)))))
 
 (define x 23)
 (define (foo x) ((lambda (_) (* x x)) (set! x 10)))
-(writeln '(expecting 100:))
-(writeln (foo x))
-(writeln '(expecting 23:))
-(writeln x)
+(writeln `(expecting 100 here: ,(foo x)))
+(writeln `(expecting 23 here: ,x))
 
 (define x 23)
 (define (boo y) ((lambda (_) (* y y)) (set! x 10)))
-(writeln '(expecting 529:))
-(writeln (boo x))
-(writeln '(expecting 10:))
-(writeln x)
+(writeln (list 'expecting 529 'here: (boo x)))
+(writeln (list 'and 10 'here: x))
 
-(writeln ((if #t + *) 2 3))
-(writeln ((if #f + *) 2 3))
+(writeln (list 'expecting 5 'here: ((if #t + *) 2 3)))
+(writeln (list 'expecting 6 'here: ((if #f + *) 2 3)))
 (writeln (if '() 'ok 'nope))
 (writeln (if '(woo) 'ok 'nope))
 
@@ -85,6 +101,12 @@
 (writeln `((+ 2 3) is now ,(+ 2 3)))
 (set! + old-+)
 (writeln `(and now (+ 2 3) is ,(+ 2 3) again))
+
+(define old-list list)
+(set! list (lambda x `(list: . ,x)))
+(writeln (list 1 2 3 4 5))
+(set! list old-list)
+(writeln (list 1 2 3 4 5))
 
 (define evil 13)
 (writeln `(13 is ,evil))
@@ -99,6 +121,7 @@
 (writeln '(define (foo x) (+ x x)))
 (writeln `(and now (foo 3) is ,(foo 3)))
 
+(writeln '(expecting 25 below:))
 (writeln
  ((lambda ()
     (define (sq x) (* x x))
@@ -136,3 +159,106 @@
 
 (define (stupid x) (begin (writeln 'makes-no-sense-but-works) x))
 (writeln (stupid (+ 2 3)))
+
+(define (evil x) (writeln 'elo) (begin (set! x 7) (* x x)))
+(writeln (list 'expecting 49 'here (evil 3)))
+
+(define (evil* x) (writeln 'elo) (begin (set! x 7) (* x x)) (writeln 'hahaha) 42)
+(writeln (list 'expecting 42 'here (evil* 3)))
+
+(define (fooo)
+  (begin (define x (+ 2 3)) ;; nb Scheme48 doesn't like this (syntax violation)
+         (define y (* x x))
+         (cons x y)))
+
+(writeln (list 'expecting '(5 . 25) 'here (fooo)))
+
+(define (fooooo)
+  (writeln 'even-better?)
+  (begin (define x (+ 2 3))
+         (define y (* x x))
+         (cons x y)))
+
+(writeln (list 'expecting '(5 . 25) 'here 'as 'well (fooooo)))
+
+(define x 23)
+(define wat (begin (set! x 3) (* x x)))
+(writeln (eq? wat 9))
+
+(if #t (begin (writeln 'all-good) (writeln 'for-real!)))
+(if #f 23 (begin (writeln 'still-good) 15))
+((begin (writeln 'i.m.rator) (lambda (x) (* x x))) (begin (writeln 'i.r.rand) (+ 2 3)))
+
+(writeln (begin (writeln 'haha) (< 2 3)))
+
+(define wat 9)
+(writeln (let ((wat 15)
+               (y wat))
+           (eq? y 9)))
+(writeln (eq? wat 9))
+
+(writeln (let* ((wat 15)
+                (y wat))
+           (eq? y 15)))
+
+(writeln (let ((x 3)
+               (y 5))
+           (let ((x 7)
+                 (y (* x x)))
+             (eq? y 9))))
+
+(writeln (let ((x 3)
+               (y 5))
+           (let* ((x 7)
+                  (y (* x x)))
+             (eq? y 49))))
+
+(let* ((x (+ 2 3))
+       (y (begin (writeln 'all-good) (* x x))))
+  (begin
+    (writeln 'here-as-well)
+    (writeln (eq? y 25))))
+
+(let ((x (begin (writeln 'all-good) (+ 2 3))))
+  (begin
+    (writeln 'here-as-well)
+    (writeln (eq? x 5))))
+
+(writeln (or #t))
+(writeln (or #f #t))
+(writeln (or #f #f #t))
+(writeln (and))
+(writeln (and #t))
+(writeln (and #t #t #t))
+(writeln (not (and #t #t #t #f #t)))
+
+(writeln (let ((x (+ 2 3))
+               (y (* 2 3)))
+           (is x < y)))
+
+(writeln (let ((x (+ 2 3))
+               (y (* 2 3)))
+           (isnt x > y)))
+
+(writeln `(2 + 3 = ,(+ 2 3)))
+(writeln `(`wat ,'wat))
+(writeln `(,'quote))
+(writeln `(,`,`,23))
+(writeln `(unquote (+ 2 3)))
+(writeln `(,'unquote (+ 2 3)))
+
+(writeln (match '(a b c)
+           (`(,h . ,t) `(h= ,h t= ,t))
+           (_ 'boo)))
+
+(writeln (match 'elo
+           (_ (writeln '(implicit begin in match works ok))
+              (writeln '(here is your 5:))
+                  (+ 2 3))))
+
+(writeln (match 'elo
+           (_ (begin
+                (writeln '(explicit begin in match works ok too))
+                (writeln '(here is another 5:))
+                (+ 2 3)))))
+
