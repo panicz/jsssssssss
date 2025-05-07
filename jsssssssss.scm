@@ -5,32 +5,34 @@
 (import (ice-9 textual-ports))
 (import (base))
 (import (expander))
+(import (transforms))
 
 (define preamble (call-with-input-file "preamble.js" get-string-all))
 
 (define (symbol->js expression)
-  (string-append "s__"
-                 (fold-left (lambda (string substitution)
-	                          (apply string-replace-substring
-		                             string
-		                             substitution))
-	                        (symbol->string expression)
-	                        '(("+" "$Pl")
-	                          ("-" "$Mn")
-	                          ("*" "$St")
-	                          ("/" "$Sl")
-	                          ("<" "$Ls")
-	                          (">" "$Gt")
-	                          ("=" "$Eq")
-	                          ("!" "$Ex")
-	                          ("%" "$Pc")
-	                          ("?" "$Qu")
-				  ("@" "$At")
-				  ("~" "$Tl")
-				  ("&" "$Am")
-				  ("#" "$Nm")
-				  ("." "$Dt")
-				  ))))
+  (fold-left (lambda (string substitution)
+	       (apply string-replace-substring
+		      string
+		      substitution))
+	     (let ((initial (symbol->string expression)))
+	       (if (char-numeric? (string-ref initial 0))
+		   (string-append "$N" initial)
+		   initial))
+	     '(("+" "$Pl")
+	       ("-" "$Mn")
+	       ("*" "$St")
+	       ("/" "$Sl")
+	       ("<" "$Ls")
+	       (">" "$Gt")
+	       ("=" "$Eq")
+	       ("!" "$Ex")
+	       ("%" "$Pc")
+	       ("?" "$Qu")
+	       ("@" "$At")
+	       ("~" "$Tl")
+	       ("&" "$Am")
+	       ("#" "$Nm")
+	       )))
 
 (define (string-escape string)
   (fold-left (lambda (string substitution)
@@ -58,6 +60,22 @@
     (string-append
      "{car: "(js-representation (car lisp-data))
      ", cdr: "(js-representation (cdr lisp-data))"}"))
+   ((char? lisp-data)
+    (string-append 
+     "{char: '"
+     (match lisp-data
+       ('#\' "\\'")
+       ('#\\ "\\\\")
+       ('#\newline "\\n")
+       (c (let ((n (char->integer c)))
+	    (if (is n < 32)
+		(string-append
+		 "\\x"(if (is n < 16)
+			  "0"
+			  "")
+		 (number->string n 16))
+		(list->string (list c))))))
+     "'}"))
    ((string? lisp-data)
     (string-append "\"" (string-escape lisp-data) "\""))))
 
@@ -93,7 +111,7 @@
       ":("(to-js then)"))"))
 
     (`(begin . ,operations)
-     (string-append (string-join (map to-js operations) ";")))
+     (to-js `((lambda () . ,operations))))
      
     (`(set! ,variable ,expression)
      (string-append
@@ -129,7 +147,7 @@
        (expressions (expand-program program core-transforms)))
   (for expression in expressions
     (display "// ")
-    (display expression)
+    (write expression)
     (newline)
     (display (to-js expression))
     (display ";")
