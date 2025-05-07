@@ -1,8 +1,8 @@
 var mk_seq_rel = rel => (...xs) => {
-  for(var i = 1; i < xs.length; ++i) {
-      if(!rel(xs[i-1], xs[i])) return false;
-  }
-  return true;
+    for(var i = 1; i < xs.length; ++i) {
+	if(!rel(xs[i-1], xs[i])) return false;
+    }
+    return true;
 }
 
 var cons = (h,t) => Array.isArray(t) ? [h].concat(t) : {car: h, cdr: t};
@@ -11,12 +11,16 @@ var cdr = p => Array.isArray(p) ? p.slice(1) : p.cdr;
 var null$Qu = x => Array.isArray(x) && !x.length;
 var boolean$Qu = x => typeof(x) == 'boolean';
 var number$Qu = x => typeof(x) == 'number';
+var char$Qu = x => typeof(x) == 'object'
+    && typeof(x.char) == 'string'
+    && x.char.length == 1;
 var string$Qu = x => typeof(x) == 'string';
-var symbol$Qu = x => typeof(x) == 'object' && typeof(x.symbol) == 'string';
-var pair$Qu = x => typeof(x) == 'object' &&
-    ((Array.isArray(x) && x.length>0)
-     || (typeof(x.car) != 'undefined'
-	 && typeof(x.cdr) != 'undefined'));
+var symbol$Qu = x => typeof(x) == 'object'
+    && typeof(x.symbol) == 'string';
+var pair$Qu = x => typeof(x) == 'object'
+    && ((Array.isArray(x) && x.length>0)
+	|| (typeof(x.car) != 'undefined'
+	    && typeof(x.cdr) != 'undefined'));
 var procedure$Qu = x => typeof(x) == 'function';
 
 var input$Mnport$Qu = x => typeof(x) == 'object'
@@ -32,7 +36,7 @@ const __EOF = {char: false};
 var eof$Mnobject$Qu = x => x === __EOF;
 
 var eqv$Qu = mk_seq_rel(
-  (a, b) =>
+    (a, b) =>
     (null$Qu(a) && null$Qu(b))
 	|| (symbol$Qu(a) && symbol$Qu(b)
 	    && a.symbol == b.symbol)
@@ -74,21 +78,35 @@ var symbol$Mn$Gtstring = s => s.symbol.replace(/^[$]N([0-9])/, "$1")
     .replace(/[$]Tl/g, "~")
     .replace(/[$]Nm/g, "#");
 
+var list$Mn$Gtstring = s => s.map(c => c.char).join('');
+
+let charName = c => {
+    let i = c.char.codePointAt(0);
+    if (i < 16) {
+	return "x0"+i.toString(16);
+    }
+    if (i <= 32) {
+	return "x"+i.toString(16);
+    }
+    return c.char;
+};
+
 var serialize = e => {
-  switch(true) {
-  case null$Qu(e): return "()";
-  case boolean$Qu(e): return e ? "#t" : "#f";
-  case number$Qu(e): return "" + e;
-  case symbol$Qu(e): return symbol$Mn$Gtstring(e);
-  case pair$Qu(e):
-      if(Array.isArray(e)) return "(" + e.map(serialize).join(" ") + ")";
-      return "(" + serialize(e.car) + " . "
-          + serialize(e.cdr) + ")";
-  case procedure$Qu(e): return "#<procedure>";
-  case input$Mnport$Qu(e): return "#<input-port>";
-  case output$Mnport$Qu(e): return "#<output-port>";
-  default: return "#<something strange>";
-  }
+    switch(true) {
+    case null$Qu(e): return "()";
+    case boolean$Qu(e): return e ? "#t" : "#f";
+    case number$Qu(e): return "" + e;
+    case char$Qu(e): return "#\\"+charName(e);
+    case symbol$Qu(e): return symbol$Mn$Gtstring(e);
+    case pair$Qu(e):
+	if(Array.isArray(e)) return "(" + e.map(serialize).join(" ") + ")";
+	return "(" + serialize(e.car) + " . "
+            + serialize(e.cdr) + ")";
+    case procedure$Qu(e): return "#<procedure>";
+    case input$Mnport$Qu(e): return "#<input-port>";
+    case output$Mnport$Qu(e): return "#<output-port>";
+    default: return "#<something strange>";
+    }
 };
 
 var writeln = e => { console.log(serialize(e)) ; return e };
