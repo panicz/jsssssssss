@@ -30,17 +30,19 @@
 
 (console.log (p))
 
-(console.log (call-with-output-string (lambda (p)
-					(write-char #\d p)
-					(write-char #\u p)
-					(write-char #\p p)
-					(write-char #\a p))))
+(console.log (call-with-output-string
+	       (lambda (p)
+		 (write-char #\d p)
+		 (write-char #\u p)
+		 (write-char #\p p)
+		 (write-char #\a p))))
 
-(console.log (with-output-to-string (lambda ()
-					(write-char #\d)
-					(write-char #\u)
-					(write-char #\p)
-					(write-char #\a))))
+(console.log (with-output-to-string
+	       (lambda ()
+		 (write-char #\d)
+		 (write-char #\u)
+		 (write-char #\p)
+		 (write-char #\a))))
 
 (console.log
  (call-with-input-string "dupa"
@@ -66,6 +68,26 @@
 (writeln current-output-port)
 
 (writeln "a'\"\\b")
+
+(e.g.
+ (catch (lambda (e) (slot-ref e 'message))
+   (e.g. (+ 2 2) ===> 5)) ===> "while evaluating
+
+  (+ 2 2)
+
+expected:
+
+  5
+
+got:
+
+  4
+")
+
+(console.log (string-join '("Mary" "marry" "merry") ", "))
+
+(when (is 2 > 3)
+  (error "dupa"))
 
 ;; the following test only runs when invoking
 ;;

@@ -117,7 +117,7 @@
     (`(if ,test ,then)
      (string-append
       "(("(to-js test)")===false"
-      "?(unspecified)"
+      "?undefined"
       ":("(to-js then)"))"))
 
     (`(begin . ,operations)
@@ -134,6 +134,13 @@
     (`(quote ,literal)
      (js-representation literal))
 
+    (`(catch ,handler ,expression)
+     (string-append "(()=>{try{return "(to-js expression)"}"
+		    "catch(__e){return "(to-js handler)"(__e);};})()"))
+    
+    (`(try-finally ,try ,finally)
+     (string-append "try{"(to-js try)"}finally{"(to-js finally)"}"))
+    
     (`(,function . ,args)
      (string-append (to-js function) "("(string-join
 					 (map to-js args)",")")"))

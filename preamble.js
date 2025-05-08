@@ -128,6 +128,8 @@ var string$Mn$Gtlist = s => s.map((c) => {char: c});
 
 var string$Mnappend = (...args) => args.join('');
 
+var string$Mnjoin = (strings, junction = '') => strings.join(junction);
+
 let charName = c => {
     let i = c.char.codePointAt(0);
     if (i < 16) {
@@ -349,3 +351,14 @@ var write$Mnstring = (s, p = current$Mnoutput$Mnport()) => p.writeString(s);
 var newline = (p = current$Mnoutput$Mnport()) => p.writeChar({char: '\n'});
 
 var close$Mnoutput$Mnport = p => p.close();
+
+let stringify = (e) => {
+    if(string$Qu(e)) {
+	return e;
+    }
+    return serialize(e);
+}
+
+var error = (...msg) => { throw new Error(msg.map(stringify).join('')); };
+
+var slot$Mnref = (x, prop) => x[symbol$Mn$Gtstring(prop)];

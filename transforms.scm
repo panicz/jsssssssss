@@ -219,10 +219,29 @@
 	       fk)))
     ))
 
+(define example-transforms
+  '((('e.g. expression '===> value)
+     ('let ((result expression))
+       ('unless ('equal? result ('quote value))
+	 ('error "while evaluating\n\n  "
+		 ('quote expression)
+		 "\n\nexpected:\n\n  "
+		 ('quote value)
+		 "\n\ngot:\n\n  "result"\n"))
+       result))
+
+    (('e.g. expression)
+     ('let ((result expression))
+       ('unless result
+	 ('error "expected "('quote expression)
+		 " to be non-#false"))
+       result))))
+
 (define convenience-transforms
   (append
    core-transforms
    match-transform
+   example-transforms
    is-transform
    isnt-transform))
 
