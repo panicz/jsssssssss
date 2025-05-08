@@ -3,6 +3,10 @@
 (writeln (quote 'hehe))
 (writeln (quote ''quote))
 
+(writeln "hohoho   what\na\nstrange\t\"string\"\n\\πżółćµ\\")
+(writeln #(a b c))
+(writeln #(1 2 (a b c) () #f #t))
+
 (writeln (if (eq? '() '()) 'ok '(nil != nil wtf)))
 (writeln (if (eq? '() (cdr '(test))) 'ok '(nil != nil again)))
 (writeln (if (eq? '() #f) '(false aint null) 'ok))
@@ -10,12 +14,17 @@
 (writeln (if (eq? 'hey 'hey) 'ok '(symbol equality broken)))
 (writeln (if (eq? 'hey 'ho) '(symbol equality broken) 'ok))
 
+(writeln (if (eq? "hey" "hey") 'ok '(string equality broken)))
+(writeln (if (eq? "hey" "HEY") '(string equality bad (case insensitive)) 'ok))
+(writeln (if (eq? 'hey "hey") '(does not distinguish symbols from strings!) 'ok))
+
 (writeln (if (eq? 5 (+ 2 3)) 'ok '(eq sucks)))
 (writeln (if (eq? #t (null? '())) 'ok '(eq or null sucks)))
 (writeln (if (eq? #f (pair? '())) 'ok '(eq or pair sucks)))
 
 (writeln (if (null? '()) 'ok '(null bad)))
 (writeln (if (null? #f) '(false aint null) 'ok))
+(writeln (if "" 'ok '(empty string should be truthie too)))
 
 (writeln (if (pair? (cons 2 3)) 'ok '(pair bad)))
 (writeln (if (pair? '(hello)) 'ok '(pair bad)))
@@ -34,11 +43,39 @@
 (writeln (if (number? #f) '(number bad) 'ok))
 (writeln (if (number? #t) '(number bad) 'ok))
 
+(writeln (if (vector? #(a b c)) 'ok '(vector? bad)))
+(writeln (if (vector? '(a b c)) '(list aint vector) 'ok))
+
+(writeln (make-vector 3 'tora))
+(writeln (vector? (make-vector 3 'tora)))
+(writeln (vector 'a 'b 'c))
+(writeln `(expecting r: ,(vector-ref #(q w e r t y) 3)))
+(writeln `(expecting q: ,(vector-ref #(q w e r t y) 0)))
+
+(begin
+  (define vct (make-vector 5 'yes))
+  (writeln vct)
+  (vector-set! vct 3 'ABSOLUTELY)
+  (writeln vct)
+  (vector-fill! vct 'HA!)
+  (writeln vct))
+
 (writeln (if (eq? (((lambda (sq) (lambda (*) (sq 5)))
                         (lambda (x) (* x x)))
                        (lambda (a b) (+ a b))) 25)
                  'ok
                  '(scoping problemz?)))
+
+(writeln (equal? 'a 'a))
+(writeln (equal? '(a) '(a)))
+(writeln (equal? '(a (b) c) '(a (b) c)))
+(writeln (equal? "abc" "abc"))
+(writeln (equal? 2 2))
+(writeln (equal? #(a b #f (c . d)) #(a b #f (c . d))))
+(writeln (equal? (make-vector 5 'a) (make-vector 5 'a)))
+
+(writeln (equal? (vector->list (list->vector '(q w e))) '(q w e)))
+(writeln (equal? (list->vector (vector->list #(q w e))) #(q w e)))
 
 (define (Z f) ((lambda (R) (R R)) (lambda (x) (lambda () (f (x x))))))
 (define ! ((Z (lambda (f) (lambda (n) (if (eq? n 0) 1 (* n ((f) (- n 1)))))))))

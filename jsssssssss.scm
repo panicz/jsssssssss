@@ -42,6 +42,11 @@
 	     string
 	     '(("\\" "\\\\")
 	       ("\"" "\\\"")
+	       ("\n" "\\n")
+	       ("\r" "\\r")
+	       ("\t" "\\t")
+	       ("\0" "\\0")
+           ;;; TODO... (\[abfve]? perhaps unicode stuff \u__ too?)
 	       )))
 
 (define (js-representation lisp-data)
@@ -77,7 +82,12 @@
 		(list->string (list c))))))
      "'}"))
    ((string? lisp-data)
-    (string-append "\"" (string-escape lisp-data) "\""))))
+    (string-append "\"" (string-escape lisp-data) "\""))
+   ((vector? lisp-data)
+    (string-append
+     "{vector: ["
+     (string-join (map js-representation (vector->list lisp-data)) ",")
+     "]}"))))
 
 (define (args-to-js args)
   (match args
