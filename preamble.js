@@ -22,6 +22,21 @@ var pair$Qu = x => typeof(x) == 'object'
 	|| (typeof(x.car) != 'undefined'
 	    && typeof(x.cdr) != 'undefined'));
 var procedure$Qu = x => typeof(x) == 'function';
+var vector$Qu = x => typeof(x) == 'object'
+    && typeof(x.vector) == 'object'
+    && Array.isArray(x.vector);
+
+var make$Mnvector = (k,f) => { return {vector: Array(k).fill(f)} }
+var vector = (...xs) => {return {vector: xs} }
+var list$Mn$Gtvector = l => {
+    if(Array.isArray(l)) return {vector: l};
+    else throw "list->vector wrong type argument"
+}
+var vector$Mn$Gtlist = v => v.vector;
+var vector$Mnlength = v => v.vector.length;
+var vector$Mnref = (v,k) => v.vector[k];
+var vector$Mnset$Ex = (v,k,o) => v.vector[k]=o;
+var vector$Mnfill$Ex = (v,f) => v.vector.fill(f);
 
 var input$Mnport$Qu = x => typeof(x) == 'object'
     && typeof(x.readChar) == 'procedure'
@@ -98,6 +113,8 @@ var serialize = e => {
     case number$Qu(e): return "" + e;
     case char$Qu(e): return "#\\"+charName(e);
     case symbol$Qu(e): return symbol$Mn$Gtstring(e);
+    case string$Qu(e): return JSON.stringify(e);
+    case vector$Qu(e): return "#("+e.vector.map(serialize).join(" ")+")";
     case pair$Qu(e):
 	if(Array.isArray(e)) return "(" + e.map(serialize).join(" ") + ")";
 	return "(" + serialize(e.car) + " . "
@@ -108,6 +125,8 @@ var serialize = e => {
     default: return "#<something strange>";
     }
 };
+
+var equal$Qu = (x,y) => serialize(x) == serialize(y) /// XD
 
 var writeln = e => { console.log(serialize(e)) ; return e };
 var make$Mnparameter = (init) => {
