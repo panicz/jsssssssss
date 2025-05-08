@@ -74,6 +74,9 @@
 (writeln (equal? #(a b #f (c . d)) #(a b #f (c . d))))
 (writeln (equal? (make-vector 5 'a) (make-vector 5 'a)))
 
+(writeln (equal? (vector->list (list->vector '(q w e))) '(q w e)))
+(writeln (equal? (list->vector (vector->list #(q w e))) #(q w e)))
+
 (define (Z f) ((lambda (R) (R R)) (lambda (x) (lambda () (f (x x))))))
 (define ! ((Z (lambda (f) (lambda (n) (if (eq? n 0) 1 (* n ((f) (- n 1)))))))))
 (writeln (if (eq? (! 5) 120) 'grrreat '(lost in zee)))
