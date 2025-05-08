@@ -89,6 +89,11 @@ got:
 (when (is 2 > 3)
   (error "dupa"))
 
+(writeln (/ 1 0))
+(writeln (/ -1 0))
+(writeln (/ 0 0))
+(writeln (/ 1 2))
+
 ;; the following test only runs when invoking
 ;;
 ;;   $ ./jsssssssss.scm < test.scm > test.js

@@ -81,7 +81,7 @@ var $Mn = (...xs) => xs.length>1 ? xs.reduce((n,m) => n-m) : -xs[0];
 
 var $St = (...xs) => xs.reduce((n,m) => n*m, 1);
 
-var $Sl = (...xs) => xs.length>1 ? xs.reduce((n,m) => n/m, 1) : 1/xs[0];
+var $Sl = (...xs) => xs.length>1 ? xs.reduce((n,m) => n/m) : 1/xs[0];
 
 var not = x => !x;
 
@@ -145,7 +145,11 @@ var serialize = e => {
     switch(true) {
     case null$Qu(e): return "()";
     case boolean$Qu(e): return e ? "#t" : "#f";
-    case number$Qu(e): return "" + e;
+    case number$Qu(e):
+	if (isFinite(e)) return "" + e;
+	if (e > 0) return "+inf.0";
+	if (e < 0) return "-inf.0";
+	return "+nan.0";
     case char$Qu(e): return "#\\"+charName(e);
     case symbol$Qu(e): return symbol$Mn$Gtstring(e);
     case string$Qu(e): return JSON.stringify(e);
