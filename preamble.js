@@ -53,20 +53,27 @@ var symbol$Qu = x => typeof(x) == 'object'
     && typeof(x.symbol) == 'string';
 
 var procedure$Qu = x => typeof(x) == 'function';
+
 var vector$Qu = x => typeof(x) == 'object'
     && typeof(x.vector) == 'object'
     && Array.isArray(x.vector);
 
 var make$Mnvector = (k,f) => { return {vector: Array(k).fill(f)} }
+
 var vector = (...xs) => {return {vector: xs} }
+
 var list$Mn$Gtvector = l => {
     if(Array.isArray(l)) return {vector: l};
     else throw "list->vector wrong type argument"
 }
 var vector$Mn$Gtlist = v => v.vector;
+
 var vector$Mnlength = v => v.vector.length;
+
 var vector$Mnref = (v,k) => v.vector[k];
+
 var vector$Mnset$Ex = (v,k,o) => v.vector[k]=o;
+
 var vector$Mnfill$Ex = (v,f) => v.vector.fill(f);
 
 var input$Mnport$Qu = x => typeof(x) == 'object'
@@ -149,7 +156,7 @@ var string$Mn$Gtlist = s => s.split('').map(c =>{return {char: c}});
 
 var string$Mnappend = (...args) => args.join('');
 
-var string$Mnjoin = (strings, junction = '') => strings.join(junction);
+var string$Mnjoin = (strings, joint='') => strings.join(joint);
 
 var for$Mneach = (f, l) => { for (var x of l) { f(x); } };
 
@@ -186,7 +193,7 @@ var serialize = e => {
 	return "(" + serialize(e.car) + " . "
             + serialize(e.cdr) + ")";
     case procedure$Qu(e): return "#<"+e.toString()+">";
-    case eof$Mnobject$Qu(e): return "#<eof-object>"
+    case eof$Mnobject$Qu(e): return "#<eof-object>";
     default:
 	if (typeof(e) == 'object') {
 	    if (e.constructor.name == "Object") {
@@ -225,14 +232,14 @@ class InputStringPort {
 	}
 	return {char: this.string[this.tip++]};
     }
-    
+
     peekChar() {
 	if (this.tip >= this.string.length) {
 	    return __EOF;
 	}
 	return {char: this.string[this.tip]};
     }
-    
+
     charReady() {
 	return this.tip < this.string.length;
     }
@@ -242,9 +249,11 @@ class OutputStringPort {
     constructor() {
 	this.string = "";
     }
+
     writeChar(c) {
 	this.string += c.char;
     }
+
     writeString(s) {
 	this.string += s;
     }
@@ -266,7 +275,7 @@ class InputFilePort {
 	    : Buffer.alloc(1);
 	this.charsUnread = [];
     }
-    
+
     readChar() {
 	if (this.charsUnread.length > 0) {
 	    return this.buffer.pop();
@@ -282,13 +291,13 @@ class InputFilePort {
     unreadChar(c) {
 	this.buffer.push(c);
     }
-    
+
     peekChar() {
 	let c = this.readChar()
 	this.unreadChar(c);
 	return c;
     }
-    
+
     charReady() {
 	if (this.charsUnread.length > 0) {
 	    return true;
@@ -306,12 +315,15 @@ class OutputFilePort {
     constructor(fd) {
 	this.fd = fd;
     }
+
     writeChar(c) {
 	return fs.writeSync(this.fd, c.char);
     }
+
     writeString(s) {
 	return fs.writeSync(this.fd, s);
     }
+
     close() {
 	return fs.closeSync(this.fd);
     }
@@ -343,12 +355,11 @@ var with$Mninput$Mnfrom$Mnstring = (string, f) => {
     let p = new InputStringPort(string);
     push$Mnparameter(current$Mninput$Mnport, p);
     try {
-	var result = f();
+	return f();
     }
     finally {
 	pop$Mnparameter(current$Mninput$Mnport);
     }
-    return result;
 };
 
 var with$Mnoutput$Mnto$Mnstring = (f) => {

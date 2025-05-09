@@ -3,10 +3,10 @@
       1
       (* n (factorial (- n 1)))))
 
-(console.log (factorial 5))
+(e.g. (factorial 5) ===> 120)
 
-(console.log (apply + 1 2 '(3 4 5)))
-(console.log (apply + '(1 2 3)))
+(e.g. (apply + 1 2 '(3 4 5)) ===> 15)
+(e.g. (apply + '(1 2 3)) ===> 6)
 
 (define (counter n)
   (lambda ()
@@ -15,38 +15,38 @@
 
 (define c (counter 0))
 
-(console.log (c))
-(console.log (c))
-(console.log (c))
+(e.g. (c) ===> 1)
+(e.g. (c) ===> 2)
+(e.g. (c) ===> 3)
 
 (define p (make-parameter 0))
 
-(console.log (p))
+(e.g. (p) ===> 0)
 
 (parameterize ((p 10))
-  (console.log (p))
+  (e.g. (p) ===> 10)
   (p (+ (p) 1))
-  (console.log (p)))
+  (e.g. (p) ===> 11))
 
-(console.log (p))
+(e.g. (p) ===> 0)
 
-(console.log
+(e.g.
  (call-with-output-string
    (lambda (p)
      (write-char #\d p)
      (write-char #\u p)
      (write-char #\p p)
-     (write-char #\a p))))
+     (write-char #\a p))) ===> "dupa")
 
-(console.log
+(e.g.
  (with-output-to-string
    (lambda ()
      (write-char #\d)
      (write-char #\u)
      (write-char #\p)
-     (write-char #\a))))
+     (write-char #\a))) ===> "dupa")
 
-(console.log
+(e.g.
  (call-with-input-string "dupa"
    (lambda (input)
      (list->string
@@ -54,9 +54,9 @@
 	     (u (read-char input))
 	     (p (read-char input))
 	     (a (read-char input)))
-	(list d u p a))))))
+	(list d u p a))))) ===> "dupa")
 
-(console.log
+(e.g.
  (with-input-from-string "dupa"
    (lambda ()
      (list->string
@@ -64,11 +64,10 @@
 	     (u (read-char))
 	     (p (read-char))
 	     (a (read-char)))
-	(list d u p a))))))
+	(list d u p a))))) ===> "dupa")
 
 (writeln (current-output-port))
 (writeln current-output-port)
-
 (writeln "a'\"\\b")
 
 (e.g.
@@ -86,24 +85,27 @@ got:
   4
 ")
 
-(console.log (string-join '("Mary" "marry" "merry") ", "))
+(e.g. (string->list "dupa") ===> (#\d #\u #\p #\a))
 
-(when (is 2 > 3)
-  (error "dupa"))
+(e.g.
+ (with-output-to-string
+   (lambda ()
+     (for-each write-char (string->list "dupa")))) ===> "dupa")
+ 
 
-(writeln (string->list "dupa"))
-(for-each writeln (string->list "dupa"))
+(e.g.
+ (with-output-to-string
+   (lambda ()
+     (with-input-from-string "dupa"
+       (lambda ()
+	 (while (isnt (peek-char) eof-object?)
+	   (write-char (read-char))))))) ===> "dupa")
 
-(with-input-from-string "dupa"
-  (lambda ()
-    (while (isnt (peek-char) eof-object?)
-      (writeln (read-char)))))
-
-(writeln (/ 1 0))
-(writeln (/ -1 0))
-(writeln (/ 0 0))
-(writeln (/ 1 2))
-(writeln (/ 2 2 2 2))
+(e.g. (/ 1 0) ===> +inf.0)
+(e.g. (/ -1 0) ===> -inf.0)
+(e.g. (/ 0 0) ===> +nan.0)
+(e.g. (/ 1 2) ===> 0.5)
+(e.g. (/ 2 2 2 2) ===> 0.25)
 
 ;; the following test only runs when invoking
 ;;

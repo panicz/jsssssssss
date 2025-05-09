@@ -151,7 +151,8 @@
 		    "catch(__e){return "(to-js handler)"(__e);};})()"))
     
     (`(try-finally ,try ,finally)
-     (string-append "try{"(to-js try)"}finally{"(to-js finally)"}"))
+     (string-append "(()=>{try{return "(to-js try)"}"
+		    "finally{"(to-js finally)"};})()"))
     
     (`(,function . ,args)
      (string-append (to-js function) "("(string-join
