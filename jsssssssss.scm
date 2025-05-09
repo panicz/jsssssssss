@@ -142,6 +142,10 @@
     (`(quote ,literal)
      (js-representation literal))
 
+    (`(while ,condition . ,actions)
+     (string-append "(()=>{while("(to-js condition)"){"
+		    (to-js `(begin . ,actions))"}})()"))
+    
     (`(catch ,handler ,expression)
      (string-append "(()=>{try{return "(to-js expression)"}"
 		    "catch(__e){return "(to-js handler)"(__e);};})()"))

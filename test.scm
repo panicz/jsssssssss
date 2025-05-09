@@ -30,19 +30,21 @@
 
 (console.log (p))
 
-(console.log (call-with-output-string
-	       (lambda (p)
-		 (write-char #\d p)
-		 (write-char #\u p)
-		 (write-char #\p p)
-		 (write-char #\a p))))
+(console.log
+ (call-with-output-string
+   (lambda (p)
+     (write-char #\d p)
+     (write-char #\u p)
+     (write-char #\p p)
+     (write-char #\a p))))
 
-(console.log (with-output-to-string
-	       (lambda ()
-		 (write-char #\d)
-		 (write-char #\u)
-		 (write-char #\p)
-		 (write-char #\a))))
+(console.log
+ (with-output-to-string
+   (lambda ()
+     (write-char #\d)
+     (write-char #\u)
+     (write-char #\p)
+     (write-char #\a))))
 
 (console.log
  (call-with-input-string "dupa"
@@ -89,10 +91,19 @@ got:
 (when (is 2 > 3)
   (error "dupa"))
 
+(writeln (string->list "dupa"))
+(for-each writeln (string->list "dupa"))
+
+(with-input-from-string "dupa"
+  (lambda ()
+    (while (isnt (peek-char) eof-object?)
+      (writeln (read-char)))))
+
 (writeln (/ 1 0))
 (writeln (/ -1 0))
 (writeln (/ 0 0))
 (writeln (/ 1 2))
+(writeln (/ 2 2 2 2))
 
 ;; the following test only runs when invoking
 ;;

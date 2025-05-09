@@ -5,11 +5,37 @@ var mk_seq_rel = rel => (...xs) => {
     return true;
 };
 
-var cons = (h,t) => Array.isArray(t) ? [h].concat(t) : {car: h, cdr: t};
+var improper$Qu = x => typeof(x) == 'object'
+    && typeof(x.improper) != 'undefined'
+    && Array.isArray(x.improper)
+    && x.improper.length>0
+    && typeof(x.tail) != 'undefined';
 
-var car = p => Array.isArray(p) ? p[0] : p.car;
+var pair$Qu = x => typeof(x) == 'object'
+    && ((Array.isArray(x) && x.length>0)
+	|| (typeof(x.car) != 'undefined'
+	    && typeof(x.cdr) != 'undefined')
+	|| improper$Qu(x));
 
-var cdr = p => Array.isArray(p) ? p.slice(1) : p.cdr;
+var cons = (h,t) => Array.isArray(t)
+    ? [h].concat(t)
+    : (improper$Qu(t)
+       ? {improper: [h].concat(t.improper), tail: t.tail}
+       : {car: h, cdr: t});
+
+var car = p => Array.isArray(p)
+    ? p[0]
+    : (improper$Qu(p)
+       ? p.improper[0]
+       : p.car);
+
+var cdr = p => Array.isArray(p)
+    ? p.slice(1)
+    : (improper$Qu(p)
+       ? (p.improper.length > 0
+	  ? {improper: p.improper.slice(1), tail: p.tail}
+	  : p.tail)
+       : p.cdr);
 
 var null$Qu = x => Array.isArray(x) && !x.length;
 
@@ -25,11 +51,6 @@ var string$Qu = x => typeof(x) == 'string';
 
 var symbol$Qu = x => typeof(x) == 'object'
     && typeof(x.symbol) == 'string';
-
-var pair$Qu = x => typeof(x) == 'object'
-    && ((Array.isArray(x) && x.length>0)
-	|| (typeof(x.car) != 'undefined'
-	    && typeof(x.cdr) != 'undefined'));
 
 var procedure$Qu = x => typeof(x) == 'function';
 var vector$Qu = x => typeof(x) == 'object'
@@ -124,11 +145,13 @@ let escape_string = (s) => s
 
 var list$Mn$Gtstring = s => s.map(c => c.char).join('');
 
-var string$Mn$Gtlist = s => s.map((c) => {char: c});
+var string$Mn$Gtlist = s => s.split('').map(c =>{return {char: c}});
 
 var string$Mnappend = (...args) => args.join('');
 
 var string$Mnjoin = (strings, junction = '') => strings.join(junction);
+
+var for$Mneach = (f, l) => { for (var x of l) { f(x); } };
 
 let charName = c => {
     let i = c.char.codePointAt(0);
@@ -157,6 +180,9 @@ var serialize = e => {
     case pair$Qu(e):
 	if(Array.isArray(e))
 	    return "("+e.map(serialize).join(" ")+")";
+	if (improper$Qu(e))
+	    return "("+e.improper.map(serialize).join(" ")
+	    + " . " + serialize(e.tail) + ")";
 	return "(" + serialize(e.car) + " . "
             + serialize(e.cdr) + ")";
     case procedure$Qu(e): return "#<"+e.toString()+">";
@@ -177,21 +203,15 @@ var equal$Qu = (x,y) => serialize(x) == serialize(y) /// XD
 var writeln = e => { console.log(serialize(e)) ; return e };
 
 var make$Mnparameter = (init) => {
-    var stack = [init];
-    var accessor = (...args) => {
-	if (args.length == 0) {
-            return stack[stack.length-1];
-	} else {
-            stack[stack.length-1] = args[0];
-	}
-    };
-    accessor.stack = stack;
-    return accessor;
+    var s = [init];
+    var axs=(...a)=>(a.length==0)?s[s.length-1]:s[s.length-1]=a[0];
+    axs.stack = s;
+    return axs;
 };
 
-var push$Mnparameter = (parameter, value) => parameter.stack.push(value);
+var push$Mnparameter = (param, value) => param.stack.push(value);
 
-var pop$Mnparameter = (parameter) => parameter.stack.pop();
+var pop$Mnparameter = (param) => param.stack.pop();
 
 class InputStringPort {
     constructor(string) {
@@ -207,11 +227,14 @@ class InputStringPort {
     }
     
     peekChar() {
-	return {char: string[tip]};
+	if (this.tip >= this.string.length) {
+	    return __EOF;
+	}
+	return {char: this.string[this.tip]};
     }
     
     charReady() {
-	return tip < string.length;
+	return this.tip < this.string.length;
     }
 };
 
