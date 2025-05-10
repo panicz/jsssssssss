@@ -42,6 +42,11 @@
 	     string
 	     '(("\\" "\\\\")
 	       ("\"" "\\\"")
+	       ("\n" "\\n")
+	       ("\r" "\\r")
+	       ("\t" "\\t")
+	       ("\0" "\\0")
+           ;;; TODO... (\[abfve]? perhaps unicode stuff \u__ too?)
 	       )))
 
 (define (js-representation lisp-data)
@@ -51,7 +56,15 @@
    ((symbol? lisp-data)
     (string-append "{symbol: \""(symbol->js lisp-data)"\"}"))
    ((number? lisp-data)
-    (number->string lisp-data))
+    (cond ((finite? lisp-data)
+	   (number->string lisp-data))
+	  ((is lisp-data > 0)
+	   "Infinity")
+	  ((is lisp-data < 0)
+	   "-Infinity")
+	  (else
+	   (assert (nan? lisp-data))
+	   "NaN")))
    ((eq? lisp-data #t)
     "true")
    ((eq? lisp-data #f)
@@ -77,7 +90,12 @@
 		(list->string (list c))))))
      "'}"))
    ((string? lisp-data)
-    (string-append "\"" (string-escape lisp-data) "\""))))
+    (string-append "\"" (string-escape lisp-data) "\""))
+   ((vector? lisp-data)
+    (string-append
+     "{vector: ["
+     (string-join (map js-representation (vector->list lisp-data)) ",")
+     "]}"))))
 
 (define (args-to-js args)
   (match args
@@ -107,7 +125,7 @@
     (`(if ,test ,then)
      (string-append
       "(("(to-js test)")===false"
-      "?(unspecified)"
+      "?undefined"
       ":("(to-js then)"))"))
 
     (`(begin . ,operations)
@@ -124,6 +142,18 @@
     (`(quote ,literal)
      (js-representation literal))
 
+    (`(while ,condition . ,actions)
+     (string-append "(()=>{while("(to-js condition)"){"
+		    (to-js `(begin . ,actions))"}})()"))
+    
+    (`(catch ,handler ,expression)
+     (string-append "(()=>{try{return "(to-js expression)"}"
+		    "catch(__e){return "(to-js handler)"(__e);};})()"))
+    
+    (`(try-finally ,try ,finally)
+     (string-append "(()=>{try{return "(to-js try)"}"
+		    "finally{"(to-js finally)"};})()"))
+    
     (`(,function . ,args)
      (string-append (to-js function) "("(string-join
 					 (map to-js args)",")")"))
@@ -144,7 +174,7 @@
 (display preamble)
 
 (let* ((program (read-all))
-       (expressions (expand-program program core-transforms)))
+       (expressions (expand-program program convenience-transforms)))
   (for expression in expressions
     (display "// ")
     (write expression)

@@ -53,6 +53,45 @@
      ('define name ('lambda args . body)))
     ))
 
+(define cond-transform
+  '((('cond ('else result1 result2 ...))
+     ('begin result1 result2 ...))
+
+    (('cond (test '=> result))
+     ('let ((temp test))
+       ('if temp (result temp))))
+
+    (('cond (test '=> result) clause1 clause2 ...)
+     ('let ((temp test))
+       ('if temp
+           (result temp)
+           ('cond clause1 clause2 ...))))
+
+    (('cond (test))
+     test)
+
+    (('cond (test) clause1 clause2 ...)
+     ('let ((temp test))
+       ('if temp
+           temp
+           ('cond clause1 clause2 ...))))
+
+    (('cond (test result1 result2 ...))
+     ('if test ('begin result1 result2 ...)))
+
+    (('cond (test result1 result2 ...)
+            clause1 clause2 ...)
+     ('if test
+          ('begin result1 result2 ...)
+          ('cond clause1 clause2 ...)))))
+
+(define when-unless-transform
+  '((('when test . actions)
+     ('if test ('begin . actions)))
+
+    (('unless test . actions)
+     ('when ('not test) . actions))))
+
 (define quasiquote-transform 
   '((('quasiquote ('unquote form))
      form)
@@ -94,8 +133,9 @@
    let*-transform
    quasiquote-transform
    parameterize-transform
+   cond-transform
+   when-unless-transform
    ))
-
 
 (define is-transform
   '((('is '_ < b)
@@ -179,10 +219,29 @@
 	       fk)))
     ))
 
+(define example-transforms
+  '((('e.g. expression '===> value)
+     ('let ((result expression))
+       ('unless ('equal? result ('quote value))
+	 ('error "while evaluating\n\n  "
+		 ('quote expression)
+		 "\n\nexpected:\n\n  "
+		 ('quote value)
+		 "\n\ngot:\n\n  "result"\n"))
+       result))
+
+    (('e.g. expression)
+     ('let ((result expression))
+       ('unless result
+	 ('error "expected "('quote expression)
+		 " to be non-#false"))
+       result))))
+
 (define convenience-transforms
   (append
    core-transforms
    match-transform
+   example-transforms
    is-transform
    isnt-transform))
 
