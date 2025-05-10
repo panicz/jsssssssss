@@ -66,6 +66,24 @@
 	     (a (read-char)))
 	(list d u p a))))) ===> "dupa")
 
+(define a '(1 2 3))
+
+(define b (append! a '(4 5 6) '(7 8 9)))
+
+(e.g. a ===> (1 2 3 4 5 6 7 8 9))
+(e.g. b ===> (1 2 3 4 5 6 7 8 9))
+(e.g. (eq? a b))
+
+(define A '(1 2 3))
+
+(define B (append A '(4 5 6) '(7 8 9)))
+
+(e.g. A ===> (1 2 3))
+(e.g. B ===> (1 2 3 4 5 6 7 8 9))
+(e.g. (isnt A eq? B))
+(e.g. (isnt b eq? B))
+(e.g. (equal? b B))
+
 (writeln (current-output-port))
 (writeln current-output-port)
 (writeln "a'\"\\b")

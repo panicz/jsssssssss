@@ -129,6 +129,16 @@ var apply = (f, ...args) => {
 
 var append = (...xs) => xs.length == 0 ? [] : xs[0].concat(...xs.slice(1));
 
+var append$Ex = (...xs) => {
+    if (xs.length == 0) {
+	return xs;
+    }
+    for (var x of xs.slice(1)) {
+	xs[0].push(...x);
+    }
+    return xs[0];
+}
+
 var list = (...xs) => xs;
 
 var symbol$Mn$Gtstring = s => s.symbol.replace(/^[$]N([0-9])/, "$1")
@@ -400,3 +410,4 @@ let stringify = (e) => {
 var error = (...msg) => { throw new Error(msg.map(stringify).join('')); };
 
 var slot$Mnref = (x, prop) => x[symbol$Mn$Gtstring(prop)];
+var slot$Mnset$Ex = (x, prop, v) => x[symbol$Mn$Gtstring(prop)] = v;
