@@ -299,3 +299,54 @@
                 (writeln '(here is another 5:))
                 (+ 2 3)))))
 
+(define qwe '(q w e))
+(define asd (append qwe '(a s d)))
+(writeln `(me should be (q w e) -- ,qwe))
+(writeln `(i are (q w e a s d) --  ,asd))
+
+(define x 3)
+((lambda ()
+  (define x 3)
+  (while (> x 0) (writeln x) (set! x (- x 1)))))
+(writeln `(here x should be 3 again and is ,x))
+((lambda ()
+  (while (> x 0) (writeln x) (set! x (- x 1)))))
+(writeln `(and here x should be 0 ,x))
+
+
+(writeln (cond ((> 1 0) 'ok)
+               ((< 1 0) 'wat?!)))
+
+(writeln (cond ((> 0 0) 'wat?!)
+               ((< 1 0) 'waaat?!)
+               (else 'ok)))
+
+(writeln `(expecting undefined here: ,(cond ((> 0 0) 'not-good)
+                                            ((< 1 0) 'not-good))))
+
+(define (caar x) (car (car x)))
+(define (cadr x) (car (cdr x)))
+(define (assv key alist)
+  (cond ((not (pair? alist)) #f)
+        ((eq? (caar alist) key) (car alist))
+        (else (assv key (cdr alist)))))
+
+(writeln (eq? 2 (cond ((assv 'b '((a 1) (b 2))) => cadr)
+                      (else #f))))
+
+
+(writeln (/ 1 0.0))
+(writeln (/ -3 0.0))
+(writeln (/ (/ 1 0.0)))
+(writeln (= (/ 3 0.0) (/ 5 0.0)))
+(writeln (not (= (/ 3 0.0) (/ -3 0.0))))
+(writeln (= (/ (/ 1 0.0)) 0))
+
+(writeln (+ (/ 1 0.0) 1))
+(writeln (- (/ 1 0.0) 1))
+(writeln (+ (/ -1 0.0) 1))
+(writeln (- (/ -1 0.0) 1))
+(writeln (+ (/ 3 0.0) (/ 2 0.0)))
+(writeln (+ (/ -3 0.0) (/ -2 0.0)))
+
+(writeln (- (/ 3 0.0) (/ 2 0.0)))

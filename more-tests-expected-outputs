@@ -147,3 +147,30 @@ here-as-well
 (explicit begin in match works ok too)
 (here is another 5:)
 5
+(me should be (q w e) -- (q w e))
+(i are (q w e a s d) -- (q w e a s d))
+3
+2
+1
+(here x should be 3 again and is 3)
+3
+2
+1
+(and here x should be 0 0)
+ok
+ok
+(expecting undefined here: #<undefined>)
+#t
++inf.0
+-inf.0
+0
+#t
+#t
+#t
++inf.0
++inf.0
+-inf.0
+-inf.0
++inf.0
+-inf.0
++nan.0
