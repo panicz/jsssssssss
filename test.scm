@@ -1,3 +1,5 @@
+;;; (begin-tests "basic tests")
+
 (define (factorial n)
   (if (<= n 1)
       1
@@ -125,6 +127,27 @@ got:
 (e.g. (/ 1 2) ===> 0.5)
 (e.g. (/ 2 2 2 2) ===> 0.25)
 
+(e.g. (map + '(1 2 3) '(4 5 6)) ===> (5 7 9))
+
+(e.g. (map char->integer (string->list "dupa"))
+      ===> (100 117 112 97))
+
+(e.g.
+ (list->string
+  (map integer->char '(100 117 112 97))) ===> "dupa")
+
+(e.g. (string-take "dupa" 2) ===> "du")
+
+(e.g. (string-drop "dupa" 2) ===> "pa")
+
+(e.g. (number->string 12) ===> "12")
+
+(e.g. (string->number "34") ===> 34)
+
+(with-input-from-string "dupa"
+  (lambda ()
+    (while (isnt (read-char) eof-object?))))
+
 ;; the following test only runs when invoking
 ;;
 ;;   $ ./jsssssssss.scm < test.scm > test.js
@@ -139,3 +162,5 @@ got:
 (console.log "type any key and press enter:")
 (let ((c (read-char)))
   (console.log (string-append "you typed: " (serialize c))))
+
+;;(end-tests)

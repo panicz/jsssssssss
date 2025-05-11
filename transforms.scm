@@ -222,20 +222,17 @@
 (define example-transforms
   '((('e.g. expression '===> value)
      ('let ((result expression))
-       ('unless ('equal? result ('quote value))
-	 ('error "while evaluating\n\n  "
-		 ('quote expression)
-		 "\n\nexpected:\n\n  "
-		 ('quote value)
-		 "\n\ngot:\n\n  "result"\n"))
-       result))
+       ('if ('equal? result ('quote value))
+	    (('valid-example) ('quote expression)
+	     result ('quote value))
+	    (('invalid-example) ('quote expression)
+	     result ('quote value)))))
 
     (('e.g. expression)
      ('let ((result expression))
-       ('unless result
-	 ('error "expected "('quote expression)
-		 " to be non-#false"))
-       result))))
+       ('if result
+	    (('valid-example) ('quote expression) result)
+	    (('invalid-example) ('quote expression) result))))))
 
 (define convenience-transforms
   (append

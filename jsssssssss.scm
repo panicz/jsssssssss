@@ -7,8 +7,6 @@
 (import (expander))
 (import (transforms))
 
-(define preamble (call-with-input-file "preamble.js" get-string-all))
-
 (define (symbol->js expression)
   (fold-left (lambda (string substitution)
 	       (apply string-replace-substring
@@ -128,6 +126,9 @@
       "?undefined"
       ":("(to-js then)"))"))
 
+    (`(begin)
+     (to-js '(if #f #f)))
+    
     (`(begin . ,operations)
      (to-js `((lambda () . ,operations))))
      
@@ -171,7 +172,17 @@
     (`(,exp . ,seq*)
      (string-append (to-js exp) ";" (sequence-to-js seq*)))))
 
-(display preamble)
+(define (rewrite file)
+  (display (call-with-input-file file get-string-all)))
+
+(rewrite "runtime/primops.js")
+(rewrite "runtime/lists.js")
+(rewrite "runtime/strings.js")
+(rewrite "runtime/numbers.js")
+(rewrite "runtime/vectors.js")
+(rewrite "runtime/parameters.js")
+(rewrite "runtime/ports.js")
+(rewrite "runtime/serialize.js")
 
 (let* ((program (read-all))
        (expressions (expand-program program convenience-transforms)))
