@@ -26,10 +26,6 @@ var symbol$Mn$Gtstring = s => s.symbol.replace(/^[$]N([0-9])/, "$1")
     .replace(/[$]Tl/g, "~")
     .replace(/[$]Nm/g, "#");
 
-let escape_string = (s) => s
-    .replace(/\\/g, "\\\\")
-    .replace(/\"/g, "\\\"");
-
 var list$Mn$Gtstring = s => s.map(c => c.char).join('');
 
 var string$Mn$Gtlist = s => s.split('').map(c =>{return {char: c}});
@@ -48,3 +44,17 @@ let charName = c => {
     }
     return c.char;
 };
+
+var string$Mnref = (s, i) => { return {char: s[i]}; };
+
+var string$Mnlength = s => s.length;
+
+var char$Mn$Gtinteger = c => c.char.codePointAt(0);
+
+var integer$Mn$Gtchar = i => {
+    return {char: String.fromCodePoint(i)};
+};
+
+var string$Mntake = (s, n) => s.slice(0, n);
+
+var string$Mndrop = (s, n) => s.slice(n);

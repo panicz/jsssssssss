@@ -32,7 +32,9 @@ var cdr = p => Array.isArray(p)
 
 var null$Qu = x => Array.isArray(x) && !x.length;
 
-var append = (...xs) => xs.length == 0 ? [] : xs[0].concat(...xs.slice(1));
+var append = (...xs) => xs.length == 0
+    ? []
+    : xs[0].concat(...xs.slice(1));
 
 var append$Ex = (...xs) => {
     if (xs.length == 0) {
@@ -47,3 +49,23 @@ var append$Ex = (...xs) => {
 var list = (...xs) => xs;
 
 var for$Mneach = (f, l) => { for (var x of l) { f(x); } };
+
+var map = (f, ...ls) => {
+    switch (ls.length) {
+    case 0: return [];
+    case 1: return ls[0].map(f);
+    default: break;
+    }
+    var result = [];
+    for (var i = 0; i < ls[0].length; ++i) {
+	var args = [];
+	for (var arglist of ls) {
+	    if (arglist.length < i) {
+		return result;
+	    }
+	    args.push(arglist[i]);
+	}
+	result.push(f.apply(null, args));
+    }
+    return result;
+};

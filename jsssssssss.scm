@@ -126,6 +126,9 @@
       "?undefined"
       ":("(to-js then)"))"))
 
+    (`(begin)
+     (to-js '(if #f #f)))
+    
     (`(begin . ,operations)
      (to-js `((lambda () . ,operations))))
      
@@ -175,6 +178,7 @@
 (rewrite "runtime/primops.js")
 (rewrite "runtime/lists.js")
 (rewrite "runtime/strings.js")
+(rewrite "runtime/numbers.js")
 (rewrite "runtime/vectors.js")
 (rewrite "runtime/parameters.js")
 (rewrite "runtime/ports.js")

@@ -1,16 +1,8 @@
-var number$Qu = x => typeof(x) == 'number';
-
-var procedure$Qu = x => typeof(x) == 'function';
-
 var serialize = e => {
     switch(true) {
     case null$Qu(e): return "()";
     case boolean$Qu(e): return e ? "#t" : "#f";
-    case number$Qu(e):
-	if (isFinite(e)) return "" + e;
-	if (e > 0) return "+inf.0";
-	if (e < 0) return "-inf.0";
-	return "+nan.0";
+    case number$Qu(e): return number$Mn$Gtstring(e);
     case char$Qu(e): return "#\\"+charName(e);
     case symbol$Qu(e): return symbol$Mn$Gtstring(e);
     case string$Qu(e): return JSON.stringify(e);

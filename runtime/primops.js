@@ -45,3 +45,5 @@ var apply = (f, ...args) => {
         .concat(args[args.length-1]);
     return f.apply(null, collected);
 };
+
+var procedure$Qu = x => typeof(x) == 'function';
