@@ -222,15 +222,17 @@
 (define example-transforms
   '((('e.g. expression '===> value)
      ('let ((result expression))
-       ('unless ('equal? result ('quote value))
-	 (('invalid-example) ('quote expression) ('quote value) result))
-       result))
+       ('if ('equal? result ('quote value))
+	    (('valid-example) ('quote expression)
+	     result ('quote value))
+	    (('invalid-example) ('quote expression)
+	     result ('quote value)))))
 
     (('e.g. expression)
      ('let ((result expression))
-       ('unless result
-	 (('invalid-example) ('quote expression)))
-       result))))
+       ('if result
+	    (('valid-example) ('quote expression) result)
+	    (('invalid-example) ('quote expression) result))))))
 
 (define convenience-transforms
   (append
