@@ -49,5 +49,17 @@ let stringify = (e) => {
 
 var error = (...msg) => { throw new Error(msg.map(stringify).join('')); };
 
+var invalid$Mnexample =
+    make$Mnparameter((expression, expected, actual) =>
+	(typeof(actual) == 'undefined'
+	 && typeof(expected) == 'undefined')
+	    ? error("expected ",expression," to be non-#false")
+	    : error("while evaluating\n\n  ",
+	      expression,
+	      "\n\nexpected:\n\n  ",
+	      expected,
+	      "\n\ngot:\n\n  ",
+		    actual, "\n"))
+
 var slot$Mnref = (x, prop) => x[symbol$Mn$Gtstring(prop)];
 var slot$Mnset$Ex = (x, prop, v) => x[symbol$Mn$Gtstring(prop)] = v;
