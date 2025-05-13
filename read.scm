@@ -19,10 +19,11 @@
       (set! total-items max-items))
 
     (define (whitespace? c)
-      (or (eq? c #\x0a)
-	  (eq? c #\x0d)
-	  (eq? c #\x20)
-	  (eq? c #\x09)))
+      (or (eq? c #\x0a) ;;#\newline
+	  (eq? c #\x0d) ;;#\return
+	  (eq? c #\x20) ;;#\space
+	  (eq? c #\x09) ;;#\tab
+	  ))
     
     (define (skip-spaces)
       (while (whitespace? (peek-char from-port))
@@ -54,15 +55,46 @@
     
     (define (separator? c)
       (or (eof-object? c)
+	  (whitespace? c)
 	  (eq? c #\()
 	  (eq? c #\))
 	  (eq? c #\;)
-	  (eq? c #\x0a) ;;#\newline
-	  (eq? c #\x0d) ;;#\return
-	  (eq? c #\x20) ;;#\space
-	  (eq? c #\x09) ;;#\tab
 	  (eq? c #\")))
+
+    (define (char-digit? c)
+      (<= (char->integer #\0)
+	  (char->integer c)
+	  (char->integer #\9)))
+
+    (define (char-hex-digit? c)
+      (or (char-digit? c)
+	  (<= (char->integer #\a)
+	      (char->integer c)
+	      (char->integer #\f))
+	  (<= (char->integer #\A)
+	      (char->integer c)
+	      (char->integer #\F))))
+
+    (define (char-hex-value c)
+      (let ((code (char->integer c)))
+	(cond ((char-digit? c)
+	       (- code (char->integer #\0)))
+	      ((<= (char->integer #\a) code (char->integer #\f))
+	       (+ 10 (- code (char->integer #\a))))
+       
+	      ((<= (char->integer #\A) code (char->integer #\F))
+	       (+ 10 (- code (char->integer #\A))))
+	      (else
+	       (assert #false)))))
     
+    (define (read-hex-sequence)
+      (let* ((c (read-char from-port))
+	     (d (read-char from-port)))
+	(assert (char-hex-digit? c))
+	(assert (char-hex-digit? d))
+	(integer->char (+ (* 16 (char-hex-value c))
+			  (char-hex-value d)))))
+
     (define (read-atom . prefix)
       (call-with-output-string
 	(lambda (to-string)
@@ -71,26 +103,25 @@
 	  (while (isnt (peek-char from-port) separator?)
 	    (write-char (read-char from-port) to-string)))))
 
-    (define (parse-atom . prefix)
-      (let ((atom (apply read-atom prefix)))
-	(cond
-	 ((string-match "^[+-]?[0-9]+$" atom)
-	  ;; liczba calkowita
-	  (string->number atom))
-	 ((and (string-match "^[+-]?([0-9]+[.][0-9]*)$" atom)
-	       (string-match "[0-9]" atom))
-	  ;; liczba zmiennopozycyjna
-	  (string->number atom))
-	 ((string-match "^[+-]?[0-9]+([.][0-9]*)?e[+-]?[0-9]+$"
-			atom)
-	  ;; liczbe zmiennopozycyjna - notacja naukowa
-	  (string->number atom))
-	 ;; - liczbe wymierna /^[0-9]+[/][0-9]+$/
-	 ;; - liczbe zespolona:
-	 ;;    /^[0-9]+([.][0-9]*)?[+-][0-9]+([.][0-9]*)?i$/
-         ;;    itd.
-	 (else
-	  (string->symbol atom)))))
+    (define (parse-atom atom)
+      (cond
+       ((string-match "^[+-]?[0-9]+$" atom)
+	;; liczba calkowita
+	(string->number atom))
+       ((and (string-match "^[+-]?([0-9]+[.][0-9]*)$" atom)
+	     (string-match "[0-9]" atom))
+	;; liczba zmiennopozycyjna
+	(string->number atom))
+       ((string-match "^[+-]?[0-9]+([.][0-9]*)?e[+-]?[0-9]+$"
+		      atom)
+	;; liczbe zmiennopozycyjna - notacja naukowa
+	(string->number atom))
+       ;; - liczbe wymierna /^[0-9]+[/][0-9]+$/
+       ;; - liczbe zespolona:
+       ;;    /^[0-9]+([.][0-9]*)?[+-][0-9]+([.][0-9]*)?i$/
+       ;;    itd.
+       (else
+	(string->symbol atom))))
 
     (define (read-string)
       (call-with-output-string
@@ -109,9 +140,8 @@
 		   ('#\r (write-char #\x0d to-string))
 		   ('#\b (write-char #\x08 to-string))
 		   ('#\f (write-char #\x0c to-string))
-		   #;('#\x (write-char (read-hex-sequence)
-				     to-string))
-		   ))
+		   ('#\x (write-char (read-hex-sequence)
+				     to-string))))
 		(c
 		 (write-char c to-string))))))))
 
@@ -211,14 +241,14 @@
 	  (_
 	   (if (terminating? c)
 	       (set! total-items max-items)
-	       (add-item! (parse-atom c)))))))
+	       (add-item! (parse-atom (read-atom c))))))))
     result))
 
 (e.g.
  (call-with-input-string " (+ 1 ; one
 2.0 #|two|# (* a . b)) #;(true)
 #t #x10 #;trulty #true 'yes #'let
-\"a \\\"b\\\" c\" #(1 2 3)
+\"a \\\"b\\\" c\" #(1 2 3) 
 "
    (lambda (from-string)
      (read-upto +inf.0 from-string)))
