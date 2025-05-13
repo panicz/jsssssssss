@@ -148,6 +148,15 @@ got:
   (lambda ()
     (while (isnt (read-char) eof-object?))))
 
+(e.g.
+ (let ((s "dupa"))
+   (map (lambda (i) (string-ref s i)) '(0 1 2 3)))
+ ===> (#\d #\u #\p #\a))
+
+(e.g. (string-match "^[0-9]+$" "123"))
+
+(console.log (string-match "^[0-9]+$" "dupa"))
+
 ;; the following test only runs when invoking
 ;;
 ;;   $ ./jsssssssss.scm < test.scm > test.js

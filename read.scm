@@ -17,9 +17,15 @@
     (define (add-improper! item)
       (set! result (append! result item))
       (set! total-items max-items))
+
+    (define (whitespace? c)
+      (or (eq? c #\x0a)
+	  (eq? c #\x0d)
+	  (eq? c #\x20)
+	  (eq? c #\x09)))
     
     (define (skip-spaces)
-      (while (char-whitespace? (peek-char from-port))
+      (while (whitespace? (peek-char from-port))
 	(read-char from-port)))
 
     (define (end-of-line? c)
@@ -52,6 +58,7 @@
 	  (eq? c #\))
 	  (eq? c #\;)
 	  (eq? c #\x0a) ;;#\newline
+	  (eq? c #\x0d) ;;#\return
 	  (eq? c #\x20) ;;#\space
 	  (eq? c #\x09) ;;#\tab
 	  (eq? c #\")))
@@ -67,14 +74,20 @@
     (define (parse-atom . prefix)
       (let ((atom (apply read-atom prefix)))
 	(cond
-	 ;; tutaj bysmy chcieli sprawdzic, czy mamy;
-	 ;; - liczbe calkowita /^[+-]?[0-9]+$/
-	 ;; - liczbe zmiennopozycyjna /^[+-]?[0-9]+[.][0-9]*$/
-	 ;;   albo /^[+-]?[0-9]*[.][0-9]+$/
-	 ;;   albo /^[+-]?[0-9]+([.][0-9]*)?e[+-][0-9]+$/
+	 ((string-match "^[+-]?[0-9]+$" atom)
+	  ;; liczba calkowita
+	  (string->number atom))
+	 ((and (string-match "^[+-]?([0-9]+[.][0-9]*)$" atom)
+	       (string-match "[0-9]" atom))
+	  ;; liczba zmiennopozycyjna
+	  (string->number atom))
+	 ((string-match "^[+-]?[0-9]+([.][0-9]*)?e[+-]?[0-9]+$"
+			atom)
+	  ;; liczbe zmiennopozycyjna - notacja naukowa
+	  (string->number atom))
 	 ;; - liczbe wymierna /^[0-9]+[/][0-9]+$/
 	 ;; - liczbe zespolona:
-	 ;;    /^[0-9]+([.][0-9])?[+-][0-9]+([.][0-9]*)?i$/
+	 ;;    /^[0-9]+([.][0-9]*)?[+-][0-9]+([.][0-9]*)?i$/
          ;;    itd.
 	 (else
 	  (string->symbol atom)))))
@@ -88,11 +101,17 @@
 		('#\"
 		 (set! inside-string? #f))
 		('#\\
-		 (match (read-string)
-		   ('#\" (write-char #\' to-string))
+		 (match (read-char from-port)
+		   ('#\" (write-char #\" to-string))
 		   ('#\\ (write-char #\\ to-string))
 		   ('#\n (write-char #\x0a to-string))
-		   ('#\t (write-char #\x09 to-string))))
+		   ('#\t (write-char #\x09 to-string))
+		   ('#\r (write-char #\x0d to-string))
+		   ('#\b (write-char #\x08 to-string))
+		   ('#\f (write-char #\x0c to-string))
+		   #;('#\x (write-char (read-hex-sequence)
+				     to-string))
+		   ))
 		(c
 		 (write-char c to-string))))))))
 
@@ -101,7 +120,7 @@
       (let ((c (read-char from-port)))
 	(match c
 	  ('#\.
-	   (add-improper! (read-upto 1 from-port))
+	   (add-improper! (car (read-upto 1 from-port)))
 	   (skip-spaces)
 	   (let ((d (read-char from-port)))
 	     (assert (terminating? d))))
@@ -136,7 +155,7 @@
 	     (match d
 	       ('#\(
 		(let ((content (read-upto +inf.0 from-port)))
-		  (list->vector content)))
+		  (add-item! (list->vector content))))
 	       ('#\\
 		(let ((char-name (read-atom)))
 		  (cond
@@ -179,13 +198,13 @@
 		  (add-item! `(,s . ,item))))
 	       ('#\x
 		(let ((hexadecimal (read-atom)))
-		  (string->number hexadecimal 16)))
+		  (add-item! (string->number hexadecimal 16))))
 	       ('#\o
 		(let ((octal (read-atom)))
-		  (string->number octal 8)))
+		  (add-item! (string->number octal 8))))
 	       ('#\b
 		(let ((binary (read-atom)))
-		  (string->number binary 2)))
+		  (add-item! (string->number binary 2))))
 	       (_
 		(error "Unsupported hash extension: "(read-atom d)))
 	       )))
@@ -195,7 +214,15 @@
 	       (add-item! (parse-atom c)))))))
     result))
 
-(call-with-input-string " (+ 1 2 (* a b)) "
-  (lambda (from-string)
-    (read-upto 1 from-string)))
- 
+(e.g.
+ (call-with-input-string " (+ 1 ; one
+2.0 #|two|# (* a . b)) #;(true)
+#t #x10 #;trulty #true 'yes #'let
+\"a \\\"b\\\" c\" #(1 2 3)
+"
+   (lambda (from-string)
+     (read-upto +inf.0 from-string)))
+ ===> ((+ 1
+	  2.0 (* a . b))
+       #t 16 #t (quote yes) (syntax let)
+       "a \"b\" c" #(1 2 3)))

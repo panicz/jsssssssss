@@ -58,3 +58,5 @@ var integer$Mn$Gtchar = i => {
 var string$Mntake = (s, n) => s.slice(0, n);
 
 var string$Mndrop = (s, n) => s.slice(n);
+
+var string$Mnmatch = (pat, s) => s.match(new RegExp(pat))||false;
