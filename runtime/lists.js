@@ -6,29 +6,21 @@ var improper$Qu = x => typeof(x) == 'object'
 
 var pair$Qu = x => typeof(x) == 'object'
     && ((Array.isArray(x) && x.length>0)
-	|| (typeof(x.car) != 'undefined'
-	    && typeof(x.cdr) != 'undefined')
 	|| improper$Qu(x));
 
 var cons = (h,t) => Array.isArray(t)
     ? [h].concat(t)
-    : (improper$Qu(t)
-       ? {improper: [h].concat(t.improper), tail: t.tail}
-       : {car: h, cdr: t});
+    : {improper: [h].concat(t.improper), tail: t.tail};
 
 var car = p => Array.isArray(p)
     ? p[0]
-    : (improper$Qu(p)
-       ? p.improper[0]
-       : p.car);
+    : p.improper[0];
 
 var cdr = p => Array.isArray(p)
     ? p.slice(1)
-    : (improper$Qu(p)
-       ? (p.improper.length > 0
-	  ? {improper: p.improper.slice(1), tail: p.tail}
-	  : p.tail)
-       : p.cdr);
+    : (p.improper.length > 0
+       ? {improper: p.improper.slice(1), tail: p.tail}
+       : p.tail);
 
 var null$Qu = x => Array.isArray(x) && !x.length;
 
@@ -40,8 +32,13 @@ var append$Ex = (...xs) => {
     if (xs.length == 0) {
 	return xs;
     }
+    
     for (var x of xs.slice(1)) {
-	xs[0].push(...x);
+	if (Array.isArray(x)) {
+	    xs[0].push(...x);
+	} else {
+	    return {improper: xs[0], tail: x};
+	}
     }
     return xs[0];
 }

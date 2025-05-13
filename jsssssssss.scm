@@ -47,6 +47,20 @@
            ;;; TODO... (\[abfve]? perhaps unicode stuff \u__ too?)
 	       )))
 
+(define (improper-list-representation c)
+  (with-output-to-string
+    (lambda ()
+      (write-string "{improper: [")
+      (while (pair? c)
+	(write-string (js-representation (car c)))
+	(if (pair? (cdr c))
+	    (write-string ",")
+	    (write-string "]"))
+	(set! c (cdr c)))
+      (write-string ", tail: ")
+      (write-string (js-representation c))
+      (write-string "}"))))
+
 (define (js-representation lisp-data)
   (cond
    ((list? lisp-data)
@@ -68,9 +82,7 @@
    ((eq? lisp-data #f)
     "false")
    ((pair? lisp-data)
-    (string-append
-     "{car: "(js-representation (car lisp-data))
-     ", cdr: "(js-representation (cdr lisp-data))"}"))
+    (improper-list-representation lisp-data))
    ((char? lisp-data)
     (string-append 
      "{char: '"

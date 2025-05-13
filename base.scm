@@ -16,6 +16,7 @@
 	    difference
 	    set=?
 	    transpose
+	    write-string
 	    read-all))
 
 (define-syntax e.g.
@@ -244,6 +245,9 @@
 	      (4 5 6))) ===> ((1 4)
 			      (2 5)
 			      (3 6)))
+
+(define* (write-string s #:optional (port (current-output-port)))
+  (string-for-each (lambda (c) (write-char c port)) s))
 
 (define* (read-all #:optional (port (current-input-port)))
   (let ((input (read port)))

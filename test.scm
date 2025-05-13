@@ -157,6 +157,8 @@ got:
 
 (console.log (string-match "^[0-9]+$" "dupa"))
 
+(e.g. (append! '(a b c) 'd) ===> (a b c . d))
+
 ;; the following test only runs when invoking
 ;;
 ;;   $ ./jsssssssss.scm < test.scm > test.js
