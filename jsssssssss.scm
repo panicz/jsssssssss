@@ -168,8 +168,12 @@
 		    "finally{"(to-js finally)"};})()"))
     
     (`(,function . ,args)
-     (string-append (to-js function) "("(string-join
-					 (map to-js args)",")")"))
+     (if (list? args)
+	 (string-append
+	  (to-js function)
+	  "("(string-join
+	      (map to-js args)",")")")
+	 (js-representation expression)))
 
     (_
      (if (symbol? expression)

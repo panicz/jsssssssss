@@ -41,6 +41,8 @@ let stringify = (e) => {
 
 var error = (...msg) => { throw new Error(msg.map(stringify).join('')); };
 
+var assert = c => { if(!c) {error("Assertion failed");} };
+
 var invalid$Mnexample =
     make$Mnparameter((expression, actual, expected) =>
 	(typeof(expected) == 'undefined')

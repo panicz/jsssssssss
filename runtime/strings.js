@@ -26,6 +26,22 @@ var symbol$Mn$Gtstring = s => s.symbol.replace(/^[$]N([0-9])/, "$1")
     .replace(/[$]Tl/g, "~")
     .replace(/[$]Nm/g, "#");
 
+var string$Mn$Gtsymbol = s => { return {
+    symbol: s.replace(/^([0-9])/, "$$N$1")
+	.replace(/[+]/g, "$Pl")
+	.replace(/[-]/g, "$Mn")
+	.replace(/[*]/g, "$St")
+	.replace(/[/]/g, "$Sl")
+	.replace(/[<]/g, "$Ls")
+	.replace(/[>]/g, "$Gt")
+	.replace(/[=]/g, "$Eq")
+	.replace(/[!]/g, "$Ex")
+	.replace(/[%]/g, "$Pc")
+	.replace(/[?]/g, "$Qu")
+	.replace(/[@]/g, "$At")
+	.replace(/[~]/g, "$Tl")
+	.replace(/[#]/g, "$Nm")}; };
+
 var list$Mn$Gtstring = s => s.map(c => c.char).join('');
 
 var string$Mn$Gtlist = s => s.split('').map(c =>{return {char: c}});

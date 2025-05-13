@@ -279,9 +279,11 @@
      (let ((transformed (fix transform expression)))
        (if (equal? expression transformed)
 	   `(,(expand operator transforms)
-	     . ,(map (lambda (operand)
-		       (expand operand transforms))
-		     operands))
+	     . ,(if (list? operands)
+		    (map (lambda (operand)
+			   (expand operand transforms))
+			 operands)
+		    operands))
        ;else
            (expand transformed transforms))))
     (_

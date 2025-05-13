@@ -26,7 +26,7 @@
 	  ))
     
     (define (skip-spaces)
-      (while (whitespace? (peek-char from-port))
+      (while (whitespace? (peek-char from-port))	
 	(read-char from-port)))
 
     (define (end-of-line? c)
@@ -101,7 +101,8 @@
 	  (for-each (lambda (c) (write-char c to-string))
 		    prefix)
 	  (while (isnt (peek-char from-port) separator?)
-	    (write-char (read-char from-port) to-string)))))
+	    (let ((c (read-char from-port)))
+	      (write-char c to-string))))))
 
     (define (parse-atom atom)
       (cond
@@ -244,11 +245,12 @@
 	       (add-item! (parse-atom (read-atom c))))))))
     result))
 
+
 (e.g.
  (call-with-input-string " (+ 1 ; one
-2.0 #|two|# (* a . b)) #;(true)
+2.0 #|two|#(* a . b)) #;(true)
 #t #x10 #;trulty #true 'yes #'let
-\"a \\\"b\\\" c\" #(1 2 3) 
+\"a \\\"b\\\"\x20c\" #(1 2 3) 
 "
    (lambda (from-string)
      (read-upto +inf.0 from-string)))
