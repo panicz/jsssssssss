@@ -179,7 +179,7 @@
 
 (define (unzip-bindings bindings keys)
   (let* ((unzipped (filter (lambda (key+value)
-			     (is (car key+value) member keys))
+			     (member (car key+value) keys))
 			   bindings))
 	 (names (map car unzipped))
 	 (values (map cdr unzipped)))
@@ -204,25 +204,12 @@
 	 binding-sequences)))
 
 (define (expand-program program transforms)
-  ;; NOTE: because `define-transform` and `with-transform`
-  ;; cons their patterns and templates in front of the `transforms`
-  ;; list, they need to be used in reverse order, i.e. 
-  ;; the most general matches should be written first,
-  ;; and the most specific ones - last, as in, say:
-  ;;
-  ;;   (define-transform ('or first . rest)
-  ;;      ('let ((result first))
-  ;;        ('if result result ('or . last))))
-  ;;
-  ;;   (define-transform ('or last) last)
-  ;;
-  ;;   (define-transform ('or) #false)
-  ;;
   (match program
     ('() '())
     
-    (`((define-transform ,pattern ,template) . ,rest)
-     (expand-program rest `((,pattern ,template) . ,transforms)))
+    (`((define-transform ,name . ,patterns+templates) . ,rest)
+     (expand-program rest `(,@patterns+templates
+			    ,@transforms)))
 
     (`((begin . ,subprogram))
      (expand-program subprogram transforms))
@@ -231,7 +218,8 @@
      (expand-program `(,@subprogram . ,rest) transforms))
 
     (`(,expression . ,expressions)
-     `(,(expand expression transforms) . ,(expand-program expressions transforms)))))
+     `(,(expand expression transforms)
+       ,@(expand-program expressions transforms)))))
 
 (define (expand expression transforms)
   
@@ -278,18 +266,14 @@
      `(set! ,(expand variable transforms)
 	    ,(expand value transforms)))
     
-    (`(with-transform () . ,body)
-     (let ((expanded (expand-program body transforms)))
+    (`(with-transform ,patterns+templates . ,body)
+     (let ((expanded (expand-program body `(,@patterns+templates
+					    ,@transforms))))
        (match expanded
 	 (`(,single)
 	  single)
 	 (_
 	  `(begin . ,expanded)))))
-    
-    (`(with-transform ((,pattern ,template) . ,etc)
-		      . ,body)
-     (expand `(with-transform ,etc . ,body)
-	     `((,pattern ,template) . ,transforms)))
     
     (`(,operator . ,operands)
      (let ((transformed (fix transform expression)))
