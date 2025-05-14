@@ -53,6 +53,8 @@ let fs = (typeof(require) == 'function')
 	writeSync: (fd, string) => {console.log(string);},
 	closeSync: (fd) => {},
 	openSync: (name, flags) => {},
+	existsSync: (name) => false,
+	unlinkSync: (name) => {},
     };
 
 class InputFilePort {
@@ -225,3 +227,8 @@ var with$Mnoutput$Mnto$Mnfile = (name, f) => {
 	p.close();
     }
 };
+
+var file$Mnexists$Qu = (name) => fs.existsSync(name);
+
+var delete$Mnfile = (name) => fs.unlinkSync(name);
+
