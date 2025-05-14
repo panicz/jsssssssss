@@ -203,6 +203,28 @@
 	   (fill-template template bindings))
 	 binding-sequences)))
 
+(define cond-expand-features '(jsssssssss))
+
+(define (cond-expand-features-match? condition)
+  (match condition
+    (`(or . ,subconditions)
+     (any cond-expand-features-match? subconditions))
+    (`(and . ,subconditions)
+     (every cond-expand-features-match? subconditions))
+    (`(not ,feature)
+     (not (cond-expand-features-match? feature)))
+    (_
+     (in condition cond-expand-features))))
+
+(define (first-matching cond-expand-clauses)
+  (match cond-expand-clauses
+    (`((else . ,fragment))
+     fragment)
+    (`((,condition . ,fragment) . ,rest)
+     (if (cond-expand-features-match? condition)
+	 fragment
+	 (first-matching rest)))))
+
 (define (expand-program program transforms)
   (match program
     ('() '())
@@ -217,6 +239,10 @@
     (`((begin . ,subprogram) . ,rest)
      (expand-program `(,@subprogram . ,rest) transforms))
 
+    (`((cond-expand . ,clauses) . ,rest)
+     (expand-program `(,@(first-matching clauses) . ,rest)
+		     transforms))
+     
     (`(,expression . ,expressions)
      `(,(expand expression transforms)
        ,@(expand-program expressions transforms)))))

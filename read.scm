@@ -1,7 +1,11 @@
 ;; oto program, ktory chcemy potraktowac
 ;; naszym konwerterem
 
-(import (base))
+(cond-expand
+ (guile
+  (import (ice-9 regex))
+  (import (base)))
+ (else))
 
 (define (read-upto max-items from-port)
   (let ((result '())
@@ -244,7 +248,6 @@
 	       (set! total-items max-items)
 	       (add-item! (parse-atom (read-atom c))))))))
     result))
-
 
 (e.g.
  (call-with-input-string " (+ 1 ; one
