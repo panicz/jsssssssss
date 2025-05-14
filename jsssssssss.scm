@@ -2,10 +2,10 @@
 -L . -s
 !#
 (import (ice-9 string-fun))
-(import (ice-9 textual-ports))
 (import (base))
 (import (expander))
 (import (transforms))
+(import (read))
 
 (define (symbol->js expression)
   (fold-left (lambda (string substitution)
@@ -189,7 +189,10 @@
      (string-append (to-js exp) ";" (sequence-to-js seq*)))))
 
 (define (rewrite file)
-  (display (call-with-input-file file get-string-all)))
+  (with-input-from-file file
+    (lambda ()
+      (while (isnt (peek-char) eof-object?)
+	(write-char (read-char))))))
 
 (rewrite "runtime/primops.js")
 (rewrite "runtime/lists.js")
@@ -200,7 +203,7 @@
 (rewrite "runtime/ports.js")
 (rewrite "runtime/serialize.js")
 
-(let* ((program (read-all))
+(let* ((program (read-upto +inf.0 (current-input-port)))
        (expressions (expand-program program convenience-transforms)))
   (for expression in expressions
     (display "// ")

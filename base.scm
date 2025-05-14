@@ -248,21 +248,3 @@
 
 (define* (write-string s #:optional (port (current-output-port)))
   (string-for-each (lambda (c) (write-char c port)) s))
-
-(define* (read-all #:optional (port (current-input-port)))
-  (let ((input (read port)))
-    (if (eof-object? input)
-	'()
-	(let* ((result `(,input)))
-	  (let next ((tip result))
-	    (let ((input (read port)))
-	      (cond
-	       ((eof-object? input)
-		result)
-	       (else
-		(set-cdr! tip `(,input))
-		(next (cdr tip))))))))))
-
-(e.g.
- (call-with-input-string "1 (2 3) 4" read-all)
- ===> (1 (2 3) 4))

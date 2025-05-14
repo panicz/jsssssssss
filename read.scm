@@ -3,8 +3,10 @@
 
 (cond-expand
  (guile
-  (import (ice-9 regex))
-  (import (base)))
+  (define-module (read)
+    #:use-module (ice-9 regex)
+    #:use-module (base)
+    #:export (read-upto)))
  (else))
 
 (define (read-upto max-items from-port)
@@ -146,7 +148,9 @@
 		   ('#\b (write-char #\x08 to-string))
 		   ('#\f (write-char #\x0c to-string))
 		   ('#\x (write-char (read-hex-sequence)
-				     to-string))))
+				     to-string))
+		   ('#\x0a (noop))
+		   ))
 		(c
 		 (write-char c to-string))))))))
 
@@ -195,10 +199,11 @@
 		(let ((char-name (read-atom)))
 		  (cond
 		   ((= (string-length char-name) 1)
-		    (string-ref char-name 0))
-		   ((eq? (string-ref char-name 0) #\x)
-		    (integer->char
-		     (string->number (string-drop char-name 1) 16)))
+		    (add-item! (string-ref char-name 0)))
+		   ((eq? (string-ref char-name 0) '#\x)
+		    (add-item!
+		     (integer->char
+		      (string->number (string-drop char-name 1) 16))))
 		   (else
 		    (error "named characters not supported yet")))))
 	       ('#\|
@@ -241,7 +246,7 @@
 		(let ((binary (read-atom)))
 		  (add-item! (string->number binary 2))))
 	       (_
-		(error "Unsupported hash extension: "(read-atom d)))
+		`(error "Unsupported hash extension: ",(read-atom d)))
 	       )))
 	  (_
 	   (if (terminating? c)
@@ -250,14 +255,14 @@
     result))
 
 (e.g.
- (call-with-input-string " (+ 1 ; one
+ (call-with-input-string " (+ 1 #\\t;one
 2.0 #|two|#(* a . b)) #;(true)
 #t #x10 #;trulty #true 'yes #'let
-\"a \\\"b\\\"\x20c\" #(1 2 3) 
+\"a \\\"b\\\"\\x20c\" #(1 2 3) 
 "
    (lambda (from-string)
      (read-upto +inf.0 from-string)))
- ===> ((+ 1
+ ===> ((+ 1 #\t
 	  2.0 (* a . b))
        #t 16 #t (quote yes) (syntax let)
        "a \"b\" c" #(1 2 3)))
