@@ -52,6 +52,7 @@ let fs = (typeof(require) == 'function')
 	readSync: (fd, buffer) => { buffer[0]='?'; },
 	writeSync: (fd, string) => {console.log(string);},
 	closeSync: (fd) => {},
+	openSync: (name, flags) => {},
     };
 
 class InputFilePort {
@@ -66,7 +67,7 @@ class InputFilePort {
 
     readChar() {
 	if (this.charsUnread.length > 0) {
-	    return this.buffer.pop();
+	    return this.charsUnread.pop();
 	}
 	
 	let bytesRead = fs.readSync(this.fd, this.buffer);
@@ -77,7 +78,7 @@ class InputFilePort {
     }
 
     unreadChar(c) {
-	this.buffer.push(c);
+	this.charsUnread.push(c);
     }
 
     peekChar() {

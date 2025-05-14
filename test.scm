@@ -159,6 +159,21 @@ got:
 
 (e.g. (append! '(a b c) 'd) ===> (a b c . d))
 
+(e.g.
+ (with-output-to-string
+   (lambda ()
+     (with-input-from-file "test-content.txt"
+       (lambda ()
+	 (while (isnt (peek-char) eof-object?)
+	   (write-char (read-char))))))) ===> "\
+This file, called `test-content.txt`,
+is a part of the `test.scm` test suite,
+and is used for testing the behavior
+of input file handling. The test suite
+relies on the exact form of this content,
+so it should not be modified.
+")
+
 ;; the following test only runs when invoking
 ;;
 ;;   $ ./jsssssssss.scm < test.scm > test.js
