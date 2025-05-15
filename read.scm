@@ -115,6 +115,10 @@
        ((string-match "^[+-]?[0-9]+$" atom)
 	;; liczba calkowita
 	(string->number atom))
+       ((string-match "^[+-][iI][nN][fF][.]0$" atom)
+	(string->number atom))
+       ((string-match "^[+-][nN][aA][nN][.]0$" atom)
+	(string->number atom))
        ((and (string-match "^[+-]?([0-9]+[.][0-9]*)$" atom)
 	     (string-match "[0-9]" atom))
 	;; liczba zmiennopozycyjna
