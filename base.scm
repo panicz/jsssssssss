@@ -201,16 +201,10 @@
 (e.g.
  (drop 3 '(a b c d e)) ===> (d e))
 
-(define (in element set)
-  (any (is _ equal? element) set))
-
-(e.g.
- (is 'y in '(x y z)))
-
 (define (union s0 . s*)
   (define (union a b)
     (fold-left (lambda (set element)
-		 (if (is element in set)
+		 (if (is element member set)
 		     set
 		     `(,element . ,set)))
 	       a b))
@@ -222,7 +216,7 @@
 (define only filter)
 
 (define (difference a b)
-  (only (isnt _ in b) a))
+  (only (isnt _ member b) a))
 
 (e.g.
  (difference '(a b c) '(b)) ===> (a c))
@@ -230,8 +224,8 @@
 (define (set=? s0 . s*)
   (define (set=? a b)
     (or (equal? a b)
-	(and (every (is _ in b) a)
-	     (every (is _ in a) b))))
+	(and (every (is _ member b) a)
+	     (every (is _ member a) b))))
   (every (is _ set=? s0) s*))
 
 (define (transpose list-of-lists)

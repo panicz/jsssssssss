@@ -196,7 +196,7 @@
 		(let ((content (read-upto +inf.0 from-port)))
 		  (add-item! (list->vector content))))
 	       ('#\\
-		(let ((char-name (read-atom)))
+		(let ((char-name (read-atom (read-char from-port))))
 		  (cond
 		   ((= (string-length char-name) 1)
 		    (add-item! (string-ref char-name 0)))
@@ -245,8 +245,10 @@
 	       ('#\b
 		(let ((binary (read-atom)))
 		  (add-item! (string->number binary 2))))
+	       ('#\: ;; eventually this should be a keyword
+		(add-item! (read-atom)))
 	       (_
-		`(error "Unsupported hash extension: ",(read-atom d)))
+		(error "Unsupported hash extension: "(read-atom d)))
 	       )))
 	  (_
 	   (if (terminating? c)

@@ -1,9 +1,14 @@
-(define-module (expander)
-  #:use-module (base)
-  #:export (expand
-	    expand-program
-	    unique-symbol-counter))
-
+(cond-expand
+ (guile
+  (define-module (expander)
+    #:use-module (base)
+    #:use-module (read)
+    #:export (expand
+	      expand-program
+	      unique-symbol-counter)))
+  (jsssssssss
+   (include "read.scm")))
+   
 ;; to find out what actual transforms look like (to be passed
 ;; as the second argument to the `expand` and `expand-program`
 ;; procedures, check out the `transforms.scm` file
@@ -214,7 +219,7 @@
     (`(not ,feature)
      (not (cond-expand-features-match? feature)))
     (_
-     (in condition cond-expand-features))))
+     (member condition cond-expand-features))))
 
 (define (first-matching cond-expand-clauses)
   (match cond-expand-clauses
@@ -238,6 +243,12 @@
 
     (`((begin . ,subprogram) . ,rest)
      (expand-program `(,@subprogram . ,rest) transforms))
+
+    (`((include ,path) . ,rest)
+     (let ((content (call-with-input-file path
+		      (lambda (from-port)
+			(read-upto +inf.0 from-port)))))
+       (expand-program `(,@content . ,rest) transforms)))
 
     (`((cond-expand . ,clauses) . ,rest)
      (expand-program `(,@(first-matching clauses) . ,rest)

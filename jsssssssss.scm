@@ -206,9 +206,11 @@
 (let* ((program (read-upto +inf.0 (current-input-port)))
        (expressions (expand-program program convenience-transforms)))
   (for expression in expressions
+       #|
     (display "// ")
     (write expression)
-    (newline)
+       (newline)
+       |#
     (display (to-js expression))
     (display ";")
     (newline)))
