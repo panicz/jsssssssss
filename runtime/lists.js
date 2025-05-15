@@ -10,7 +10,10 @@ var pair$Qu = x => typeof(x) == 'object'
 
 var cons = (h,t) => Array.isArray(t)
     ? [h].concat(t)
-    : {improper: [h].concat(t.improper), tail: t.tail};
+    : improper$Qu(t)
+    ? {improper: [h].concat(t.improper),
+       tail: t.tail}
+    : {improper: [h], tail: t};
 
 var car = p => Array.isArray(p)
     ? p[0]
