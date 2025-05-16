@@ -10,11 +10,8 @@
 	    any
 	    only
 	    take drop
-	    fix
-	    in
 	    union
 	    difference
-	    set=?
 	    transpose
 	    write-string
 	    read-all))
@@ -78,7 +75,8 @@
 	 fk))
     
     ((match-clause value (compound . pattern) sk fk)
-     (syntax-error 'compound-patterns-not-supported '(compound . pattern)))
+     (syntax-error 'compound-patterns-not-supported
+		   '(compound . pattern)))
 
     ((match-clause value atom sk fk)
      (if (symbol? 'atom)
@@ -170,13 +168,6 @@
 
 (e.g. (isnt 3 < 2))
 
-(define (fix function argument)
-  (let ((value (function argument)))
-    (if (equal? value argument)
-        value
-    ;else
-        (fix function value))))
-
 (define (take n elements)
   (if (is n <= 0)
       '()
@@ -220,13 +211,6 @@
 
 (e.g.
  (difference '(a b c) '(b)) ===> (a c))
-
-(define (set=? s0 . s*)
-  (define (set=? a b)
-    (or (equal? a b)
-	(and (every (is _ member b) a)
-	     (every (is _ member a) b))))
-  (every (is _ set=? s0) s*))
 
 (define (transpose list-of-lists)
   (if (null? list-of-lists)

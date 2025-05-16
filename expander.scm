@@ -13,6 +13,13 @@
 ;; as the second argument to the `expand` and `expand-program`
 ;; procedures, check out the `transforms.scm` file
 
+(define (fix function argument)
+  (let ((value (function argument)))
+    (if (equal? value argument)
+        value
+    ;else
+        (fix function value))))
+
 (define (used-symbols expression)
   (match expression
     (`(quote ,literal)
@@ -183,7 +190,7 @@
             template)))))
 
 (define (unzip-bindings bindings keys)
-  (let* ((unzipped (filter (lambda (key+value)
+  (let* ((unzipped (only (lambda (key+value)
 			     (member (car key+value) keys))
 			   bindings))
 	 (names (map car unzipped))
@@ -253,10 +260,14 @@
     (`((cond-expand . ,clauses) . ,rest)
      (expand-program `(,@(first-matching clauses) . ,rest)
 		     transforms))
-     
+    
     (`(,expression . ,expressions)
-     `(,(expand expression transforms)
-       ,@(expand-program expressions transforms)))))
+     (let ((expanded (expand expression transforms)))
+       (if (equal? expanded expression)
+           `(,expression . ,(expand-program expressions
+                                            transforms))
+           (expand-program `(,expanded . ,expressions)
+                           transforms))))))
 
 (define (expand expression transforms)
   
@@ -302,7 +313,6 @@
     (`(set! ,variable ,value)
      `(set! ,(expand variable transforms)
 	    ,(expand value transforms)))
-    
     (`(with-transform ,patterns+templates . ,body)
      (let ((expanded (expand-program body `(,@patterns+templates
 					    ,@transforms))))
