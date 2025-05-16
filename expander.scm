@@ -1,9 +1,14 @@
-(define-module (expander)
-  #:use-module (base)
-  #:export (expand
-	    expand-program
-	    unique-symbol-counter))
-
+(cond-expand
+ (guile
+  (define-module (expander)
+    #:use-module (base)
+    #:use-module (read)
+    #:export (expand
+	      expand-program
+	      unique-symbol-counter)))
+  (jsssssssss
+   (include "read.scm")))
+   
 ;; to find out what actual transforms look like (to be passed
 ;; as the second argument to the `expand` and `expand-program`
 ;; procedures, check out the `transforms.scm` file
@@ -179,7 +184,7 @@
 
 (define (unzip-bindings bindings keys)
   (let* ((unzipped (filter (lambda (key+value)
-			     (is (car key+value) member keys))
+			     (member (car key+value) keys))
 			   bindings))
 	 (names (map car unzipped))
 	 (values (map cdr unzipped)))
@@ -203,26 +208,35 @@
 	   (fill-template template bindings))
 	 binding-sequences)))
 
+(define cond-expand-features '(jsssssssss))
+
+(define (cond-expand-features-match? condition)
+  (match condition
+    (`(or . ,subconditions)
+     (any cond-expand-features-match? subconditions))
+    (`(and . ,subconditions)
+     (every cond-expand-features-match? subconditions))
+    (`(not ,feature)
+     (not (cond-expand-features-match? feature)))
+    (_
+     (member condition cond-expand-features))))
+
+(define (first-matching cond-expand-clauses)
+  (match cond-expand-clauses
+    (`((else . ,fragment))
+     fragment)
+    (`((,condition . ,fragment) . ,rest)
+     (if (cond-expand-features-match? condition)
+	 fragment
+	 (first-matching rest)))))
+
 (define (expand-program program transforms)
-  ;; NOTE: because `define-transform` and `with-transform`
-  ;; cons their patterns and templates in front of the `transforms`
-  ;; list, they need to be used in reverse order, i.e. 
-  ;; the most general matches should be written first,
-  ;; and the most specific ones - last, as in, say:
-  ;;
-  ;;   (define-transform ('or first . rest)
-  ;;      ('let ((result first))
-  ;;        ('if result result ('or . last))))
-  ;;
-  ;;   (define-transform ('or last) last)
-  ;;
-  ;;   (define-transform ('or) #false)
-  ;;
   (match program
     ('() '())
     
-    (`((define-transform ,pattern ,template) . ,rest)
-     (expand-program rest `((,pattern ,template) . ,transforms)))
+    (`((define-transform ,name . ,patterns+templates) . ,rest)
+     (expand-program rest `(,@patterns+templates
+			    ,@transforms)))
 
     (`((begin . ,subprogram))
      (expand-program subprogram transforms))
@@ -230,8 +244,19 @@
     (`((begin . ,subprogram) . ,rest)
      (expand-program `(,@subprogram . ,rest) transforms))
 
+    (`((include ,path) . ,rest)
+     (let ((content (call-with-input-file path
+		      (lambda (from-port)
+			(read-upto +inf.0 from-port)))))
+       (expand-program `(,@content . ,rest) transforms)))
+
+    (`((cond-expand . ,clauses) . ,rest)
+     (expand-program `(,@(first-matching clauses) . ,rest)
+		     transforms))
+     
     (`(,expression . ,expressions)
-     `(,(expand expression transforms) . ,(expand-program expressions transforms)))))
+     `(,(expand expression transforms)
+       ,@(expand-program expressions transforms)))))
 
 (define (expand expression transforms)
   
@@ -278,26 +303,24 @@
      `(set! ,(expand variable transforms)
 	    ,(expand value transforms)))
     
-    (`(with-transform () . ,body)
-     (let ((expanded (expand-program body transforms)))
+    (`(with-transform ,patterns+templates . ,body)
+     (let ((expanded (expand-program body `(,@patterns+templates
+					    ,@transforms))))
        (match expanded
 	 (`(,single)
 	  single)
 	 (_
 	  `(begin . ,expanded)))))
     
-    (`(with-transform ((,pattern ,template) . ,etc)
-		      . ,body)
-     (expand `(with-transform ,etc . ,body)
-	     `((,pattern ,template) . ,transforms)))
-    
     (`(,operator . ,operands)
      (let ((transformed (fix transform expression)))
        (if (equal? expression transformed)
 	   `(,(expand operator transforms)
-	     . ,(map (lambda (operand)
-		       (expand operand transforms))
-		     operands))
+	     . ,(if (list? operands)
+		    (map (lambda (operand)
+			   (expand operand transforms))
+			 operands)
+		    operands))
        ;else
            (expand transformed transforms))))
     (_

@@ -15,6 +15,7 @@ var eqv$Qu = mk_seq_rel(
 	    && a.symbol == b.symbol)
 	|| (boolean$Qu(a) && boolean$Qu(b) && a == b)
 	|| (number$Qu(a) && number$Qu(b) && a == b)
+	|| (char$Qu(a) && char$Qu(b) && a.char == b.char)
 	|| a === b
 );
 

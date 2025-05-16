@@ -148,6 +148,36 @@ got:
   (lambda ()
     (while (isnt (read-char) eof-object?))))
 
+(e.g.
+ (let ((s "dupa"))
+   (map (lambda (i) (string-ref s i)) '(0 1 2 3)))
+ ===> (#\d #\u #\p #\a))
+
+(e.g. (string-match "^[0-9]+$" "123"))
+
+(console.log (string-match "^[0-9]+$" "dupa"))
+
+(e.g. (append! '(a b c) 'd) ===> (a b c . d))
+
+(e.g.
+ (begin
+   (when (file-exists? "dupa.txt")
+     (delete-file "dupa.txt"))
+   
+   (with-output-to-file "dupa.txt"
+     (lambda ()
+       (for-each write-char (string->list "dupa"))))
+
+   (let ((dupa (with-output-to-string
+		 (lambda ()
+		   (with-input-from-file "dupa.txt"
+		     (lambda ()
+		       (while (isnt (peek-char) eof-object?)
+			 (write-char (read-char)))))))))
+     (delete-file "dupa.txt")
+     dupa)) ===> "dupa")
+
+
 ;; the following test only runs when invoking
 ;;
 ;;   $ ./jsssssssss.scm < test.scm > test.js

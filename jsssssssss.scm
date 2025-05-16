@@ -2,10 +2,10 @@
 -L . -s
 !#
 (import (ice-9 string-fun))
-(import (ice-9 textual-ports))
 (import (base))
 (import (expander))
 (import (transforms))
+(import (read))
 
 (define (symbol->js expression)
   (fold-left (lambda (string substitution)
@@ -47,6 +47,20 @@
            ;;; TODO... (\[abfve]? perhaps unicode stuff \u__ too?)
 	       )))
 
+(define (improper-list-representation c)
+  (with-output-to-string
+    (lambda ()
+      (write-string "{improper: [")
+      (while (pair? c)
+	(write-string (js-representation (car c)))
+	(if (pair? (cdr c))
+	    (write-string ",")
+	    (write-string "]"))
+	(set! c (cdr c)))
+      (write-string ", tail: ")
+      (write-string (js-representation c))
+      (write-string "}"))))
+
 (define (js-representation lisp-data)
   (cond
    ((list? lisp-data)
@@ -68,9 +82,7 @@
    ((eq? lisp-data #f)
     "false")
    ((pair? lisp-data)
-    (string-append
-     "{car: "(js-representation (car lisp-data))
-     ", cdr: "(js-representation (cdr lisp-data))"}"))
+    (improper-list-representation lisp-data))
    ((char? lisp-data)
     (string-append 
      "{char: '"
@@ -156,8 +168,12 @@
 		    "finally{"(to-js finally)"};})()"))
     
     (`(,function . ,args)
-     (string-append (to-js function) "("(string-join
-					 (map to-js args)",")")"))
+     (if (list? args)
+	 (string-append
+	  (to-js function)
+	  "("(string-join
+	      (map to-js args)",")")")
+	 (js-representation expression)))
 
     (_
      (if (symbol? expression)
@@ -173,7 +189,10 @@
      (string-append (to-js exp) ";" (sequence-to-js seq*)))))
 
 (define (rewrite file)
-  (display (call-with-input-file file get-string-all)))
+  (with-input-from-file file
+    (lambda ()
+      (while (isnt (peek-char) eof-object?)
+	(write-char (read-char))))))
 
 (rewrite "runtime/primops.js")
 (rewrite "runtime/lists.js")
@@ -184,12 +203,14 @@
 (rewrite "runtime/ports.js")
 (rewrite "runtime/serialize.js")
 
-(let* ((program (read-all))
+(let* ((program (read-upto +inf.0 (current-input-port)))
        (expressions (expand-program program convenience-transforms)))
   (for expression in expressions
+       #|
     (display "// ")
     (write expression)
-    (newline)
+       (newline)
+       |#
     (display (to-js expression))
     (display ";")
     (newline)))

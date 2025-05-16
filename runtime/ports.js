@@ -52,20 +52,24 @@ let fs = (typeof(require) == 'function')
 	readSync: (fd, buffer) => { buffer[0]='?'; },
 	writeSync: (fd, string) => {console.log(string);},
 	closeSync: (fd) => {},
+	openSync: (name, flags) => {},
+	existsSync: (name) => false,
+	unlinkSync: (name) => {},
     };
 
 class InputFilePort {
-    constructor(fd) {
+    constructor(fd, name) {
 	this.fd = fd;
 	this.buffer = (typeof(Buffer) == 'undefined')
 	    ? []
 	    : Buffer.alloc(1);
 	this.charsUnread = [];
+	this.name = name;
     }
 
     readChar() {
 	if (this.charsUnread.length > 0) {
-	    return this.buffer.pop();
+	    return this.charsUnread.pop();
 	}
 	
 	let bytesRead = fs.readSync(this.fd, this.buffer);
@@ -76,7 +80,7 @@ class InputFilePort {
     }
 
     unreadChar(c) {
-	this.buffer.push(c);
+	this.charsUnread.push(c);
     }
 
     peekChar() {
@@ -99,8 +103,9 @@ class InputFilePort {
 };
 
 class OutputFilePort {
-    constructor(fd) {
+    constructor(fd, name) {
 	this.fd = fd;
+	this.name = name;
     }
 
     writeChar(c) {
@@ -122,11 +127,11 @@ let stdout = new OutputFilePort(1);
 
 let stderr = new OutputFilePort(2);
 
-var current$Mninput$Mnport = make$Mnparameter(stdin);
+var current$Mninput$Mnport = make$Mnparameter(stdin, "stdin");
 
-var current$Mnoutput$Mnport = make$Mnparameter(stdout);
+var current$Mnoutput$Mnport = make$Mnparameter(stdout, "stdout");
 
-var current$Mnerror$Mnport = make$Mnparameter(stderr);
+var current$Mnerror$Mnport = make$Mnparameter(stderr, "stderr");
 
 var call$Mnwith$Mninput$Mnstring = (string, f) => {
     return f(new InputStringPort(string));
@@ -176,3 +181,54 @@ var write$Mnstring = (s, p = current$Mnoutput$Mnport()) => p.writeString(s);
 var newline = (p = current$Mnoutput$Mnport()) => p.writeChar({char: '\n'});
 
 var close$Mnoutput$Mnport = p => p.close();
+
+var open$Mninput$Mnfile = (name) => {
+    let fd = fs.openSync(name, "r");
+    return new InputFilePort(fd, name);
+};
+
+var open$Mnoutput$Mnfile = (name) => {
+    let fd = fs.openSync(name, "w");
+    return new OutputFilePort(fd, name);
+};
+
+var call$Mnwith$Mninput$Mnfile = (name, f) => {
+    var file = open$Mninput$Mnfile(name);
+    f(file);
+    file.close();
+}
+
+var call$Mnwith$Mnoutput$Mnfile = (name, f) => {
+    var file = open$Mnoutput$Mnfile(name);
+    f(file);
+    file.close();
+}
+
+var with$Mninput$Mnfrom$Mnfile = (name, f) => {
+    let p = open$Mninput$Mnfile(name);
+    push$Mnparameter(current$Mninput$Mnport, p);
+    try {
+	return f();
+    }
+    finally {
+	pop$Mnparameter(current$Mninput$Mnport);
+	p.close();
+    }
+};
+
+var with$Mnoutput$Mnto$Mnfile = (name, f) => {
+    let p = open$Mnoutput$Mnfile(name);
+    push$Mnparameter(current$Mnoutput$Mnport, p);
+    try {
+	return f();
+    }
+    finally {
+	pop$Mnparameter(current$Mnoutput$Mnport);
+	p.close();
+    }
+};
+
+var file$Mnexists$Qu = (name) => fs.existsSync(name);
+
+var delete$Mnfile = (name) => fs.unlinkSync(name);
+
