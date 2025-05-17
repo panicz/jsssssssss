@@ -21,11 +21,15 @@ var car = p => Array.isArray(p)
 
 var cdr = p => Array.isArray(p)
     ? p.slice(1)
-    : (p.improper.length > 0
+    : (p.improper.length > 1
        ? {improper: p.improper.slice(1), tail: p.tail}
        : p.tail);
 
+var cadr = p => car(cdr(p));
+
 var null$Qu = x => Array.isArray(x) && !x.length;
+
+var list$Qu = x => Array.isArray(x);
 
 var append = (...xs) => xs.length == 0
     ? []
@@ -69,3 +73,61 @@ var map = (f, ...ls) => {
     }
     return result;
 };
+
+var only = (pred, l) => l.filter(pred);
+
+var fold$Mnleft = (op, init, l) => l.reduce(op, init);
+
+var any = (pred, l) => {
+    for (var x of l) {
+	var res = pred(x);
+	if (res !== false) {
+	    return res;
+	}
+    }
+    return false;
+};
+
+var every = (pred, l) => l.every(pred)
+
+var union = (...sets) => {
+    switch (sets.length) {
+    case 0: return [];
+    case 1: return sets[0];
+    default: break;
+    }
+    var set = {};
+    for (var s of sets) {
+	for (var x of s) {
+	    set[serialize(x)] = x;
+	}
+    }
+    var result = [];
+    for (var k in set) {
+	result.push(set[k]);
+    }
+    return result;
+};
+
+var difference = (a, b) => {
+    var bset = {};
+    for (var x of b) {
+	bset[stringify(x)] = 1;
+    }
+    return a.filter(x=> !(stringify(x) in bset));
+};
+
+var assoc = (key, alist) => {
+    for (var x of alist) {
+	if (equal$Qu(car(x), key)) {
+	    return x;
+	}
+    }
+    return false;
+}
+
+var member = (element, lset) => any(x => equal$Qu(x,element), lset);
+
+var take = (n, s) => s.slice(0, n);
+
+var drop = (n, s) => s.slice(n);

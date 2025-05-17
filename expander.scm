@@ -13,6 +13,25 @@
 ;; as the second argument to the `expand` and `expand-program`
 ;; procedures, check out the `transforms.scm` file
 
+(define (fix f argument)
+  (let ((value (f argument)))
+    (if (equal? value argument)
+        value
+    ;else
+        (fix f value))))
+
+(define (transpose list-of-lists)
+  (if (null? list-of-lists)
+      '()
+  ;else
+      (apply map list list-of-lists)))
+
+(e.g.
+ (transpose '((1 2 3)
+	      (4 5 6))) ===> ((1 4)
+			      (2 5)
+			      (3 6)))
+
 (define (used-symbols expression)
   (match expression
     (`(quote ,literal)
@@ -93,7 +112,8 @@
 	(values (map (lambda (bindings)
 		       (map cdr bindings))
 		     list-of-bindings)))
-    (assert (apply equal? names))
+    (unless (apply equal? names)
+      (writeln names))
     (match names
       (`(,names . ,_)
        (apply map list names values))
@@ -118,8 +138,7 @@
        n)))
   (traverse l 0))
 
-(e.g.
- (prefix-length even? '(2 4 6 7 8 9)) ===> 3)
+;;(e.g. (prefix-length even? '(2 4 6 7 8 9)) ===> 3)
 
 (define (carry #;from prefix #;to suffix #;until success?)
   (let ((result (success? prefix suffix)))
@@ -183,7 +202,7 @@
             template)))))
 
 (define (unzip-bindings bindings keys)
-  (let* ((unzipped (filter (lambda (key+value)
+  (let* ((unzipped (only (lambda (key+value)
 			     (member (car key+value) keys))
 			   bindings))
 	 (names (map car unzipped))
@@ -234,7 +253,8 @@
   (match program
     ('() '())
     
-    (`((define-transform ,name . ,patterns+templates) . ,rest)
+    (`((define-transform ,name . ,patterns+templates)
+       . ,rest)
      (expand-program rest `(,@patterns+templates
 			    ,@transforms)))
 
@@ -253,10 +273,14 @@
     (`((cond-expand . ,clauses) . ,rest)
      (expand-program `(,@(first-matching clauses) . ,rest)
 		     transforms))
-     
+    
     (`(,expression . ,expressions)
-     `(,(expand expression transforms)
-       ,@(expand-program expressions transforms)))))
+     (let ((expanded (expand expression transforms)))
+       (if (equal? expanded expression)
+           `(,expression . ,(expand-program expressions
+                                            transforms))
+           (expand-program `(,expanded . ,expressions)
+                           transforms))))))
 
 (define (expand expression transforms)
   
@@ -282,10 +306,10 @@
     (`(lambda ,args . ,body)
      `(lambda ,args . ,(expand-program body transforms)))
 
-    (`(if ,condition ,then ,else)
+    (`(if ,condition ,consequent ,alternative)
      `(if ,(expand condition transforms)
-	  ,(expand then transforms)
-	  ,(expand else transforms)))
+	  ,(expand consequent transforms)
+	  ,(expand alternative transforms)))
 
     (`(if ,condition ,then)
      `(if ,(expand condition transforms)
@@ -302,7 +326,6 @@
     (`(set! ,variable ,value)
      `(set! ,(expand variable transforms)
 	    ,(expand value transforms)))
-    
     (`(with-transform ,patterns+templates . ,body)
      (let ((expanded (expand-program body `(,@patterns+templates
 					    ,@transforms))))
