@@ -13,12 +13,24 @@
 ;; as the second argument to the `expand` and `expand-program`
 ;; procedures, check out the `transforms.scm` file
 
-(define (fix function argument)
-  (let ((value (function argument)))
+(define (fix f argument)
+  (let ((value (f argument)))
     (if (equal? value argument)
         value
     ;else
-        (fix function value))))
+        (fix f value))))
+
+(define (transpose list-of-lists)
+  (if (null? list-of-lists)
+      '()
+  ;else
+      (apply map list list-of-lists)))
+
+(e.g.
+ (transpose '((1 2 3)
+	      (4 5 6))) ===> ((1 4)
+			      (2 5)
+			      (3 6)))
 
 (define (used-symbols expression)
   (match expression
@@ -100,7 +112,8 @@
 	(values (map (lambda (bindings)
 		       (map cdr bindings))
 		     list-of-bindings)))
-    (assert (apply equal? names))
+    (unless (apply equal? names)
+      (writeln names))
     (match names
       (`(,names . ,_)
        (apply map list names values))
@@ -125,8 +138,7 @@
        n)))
   (traverse l 0))
 
-(e.g.
- (prefix-length even? '(2 4 6 7 8 9)) ===> 3)
+;;(e.g. (prefix-length even? '(2 4 6 7 8 9)) ===> 3)
 
 (define (carry #;from prefix #;to suffix #;until success?)
   (let ((result (success? prefix suffix)))
@@ -241,7 +253,8 @@
   (match program
     ('() '())
     
-    (`((define-transform ,name . ,patterns+templates) . ,rest)
+    (`((define-transform ,name . ,patterns+templates)
+       . ,rest)
      (expand-program rest `(,@patterns+templates
 			    ,@transforms)))
 
@@ -293,10 +306,10 @@
     (`(lambda ,args . ,body)
      `(lambda ,args . ,(expand-program body transforms)))
 
-    (`(if ,condition ,then ,else)
+    (`(if ,condition ,consequent ,alternative)
      `(if ,(expand condition transforms)
-	  ,(expand then transforms)
-	  ,(expand else transforms)))
+	  ,(expand consequent transforms)
+	  ,(expand alternative transforms)))
 
     (`(if ,condition ,then)
      `(if ,(expand condition transforms)

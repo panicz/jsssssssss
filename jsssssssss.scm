@@ -1,11 +1,15 @@
 #!/usr/bin/guile \
 -L . -s
 !#
-(import (ice-9 string-fun))
-(import (base))
-(import (expander))
-(import (transforms))
-(import (read))
+(cond-expand
+ (guile
+  (import (ice-9 string-fun))
+  (import (base))
+  (import (expander))
+  (import (transforms))
+  (import (read)))
+ (jsssssssss
+  (include "transforms.scm")))
 
 (define (symbol->js expression)
   (fold-left (lambda (string substitution)
@@ -13,9 +17,14 @@
 		      string
 		      substitution))
 	     (let ((initial (symbol->string expression)))
-	       (if (char-numeric? (string-ref initial 0))
-		   (string-append "$N" initial)
-		   initial))
+	       (cond
+		((char-numeric? (string-ref initial 0))
+		 (string-append "$N" initial))
+		((or (string=? initial "for")
+		     )
+		 (string-append "$Kw" initial))
+		(else
+		 initial)))
 	     '(("+" "$Pl")
 	       ("-" "$Mn")
 	       ("*" "$St")
@@ -30,6 +39,7 @@
 	       ("~" "$Tl")
 	       ("&" "$Am")
 	       ("#" "$Nm")
+	       ("." "$Dt")
 	       )))
 
 (define (string-escape string)
@@ -43,7 +53,7 @@
 	       ("\n" "\\n")
 	       ("\r" "\\r")
 	       ("\t" "\\t")
-	       ("\0" "\\0")
+;	       ("\0" "\\0")
            ;;; TODO... (\[abfve]? perhaps unicode stuff \u__ too?)
 	       )))
 
@@ -89,7 +99,7 @@
      (match lisp-data
        ('#\' "\\'")
        ('#\\ "\\\\")
-       ('#\newline "\\n")
+       ('#\x20 "\\n")
        (c (let ((n (char->integer c)))
 	    (if (is n < 32)
 		(string-append
@@ -124,13 +134,16 @@
 
     (`(lambda ,args . ,body)
      (string-append
-      "(("(args-to-js args)")=>{" (sequence-to-js body) "})"))
+      "(("(args-to-js args)")=>{\n"
+      (sequence-to-js body) "})"))
 
-    (`(if ,test ,then ,else)
+    (`(if ,condition
+	  ,consequent
+	  ,alternative)
      (string-append
-      "(("(to-js test)")===false"
-      "?("(to-js else)")"
-      ":("(to-js then)"))"))
+      "(("(to-js condition)")===false"
+      "?("(to-js alternative)")"
+      ":("(to-js consequent)"))"))
 
     (`(if ,test ,then)
      (string-append
@@ -156,21 +169,25 @@
      (js-representation literal))
 
     (`(while ,condition . ,actions)
-     (string-append "(()=>{while("(to-js condition)"){"
-		    (to-js `(begin . ,actions))"}})()"))
+     (string-append
+      "(()=>{\nwhile("(to-js condition)"){\n"
+      (to-js `(begin . ,actions))"\n}})()"))
     
     (`(catch ,handler ,expression)
-     (string-append "(()=>{try{return "(to-js expression)"}"
-		    "catch(__e){return "(to-js handler)"(__e);};})()"))
+     (string-append
+      "(()=>{\ntry{\nreturn "(to-js expression)"\n}"
+      "catch(__e){\nreturn "(to-js handler)"(__e);"
+      "\n};})()"))
     
-    (`(try-finally ,try ,finally)
-     (string-append "(()=>{try{return "(to-js try)"}"
-		    "finally{"(to-js finally)"};})()"))
+    (`(try-finally ,attempt ,eventually)
+     (string-append
+      "(()=>{try{\nreturn "(to-js attempt)"\n}"
+      "finally{\n"(to-js eventually)"\n};})()"))
     
-    (`(,function . ,args)
+    (`(,fun . ,args)
      (if (list? args)
 	 (string-append
-	  (to-js function)
+	  (to-js fun)
 	  "("(string-join
 	      (map to-js args)",")")")
 	 (js-representation expression)))
@@ -184,9 +201,10 @@
 (define (sequence-to-js seq)
   (match seq
     (`(,exp)
-     (string-append "return " (to-js exp) ";"))
+     (string-append "return " (to-js exp) ";\n"))
     (`(,exp . ,seq*)
-     (string-append (to-js exp) ";" (sequence-to-js seq*)))))
+     (string-append (to-js exp) ";\n"
+		    (sequence-to-js seq*)))))
 
 (define (rewrite file)
   (with-input-from-file file

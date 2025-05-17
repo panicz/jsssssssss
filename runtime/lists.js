@@ -21,11 +21,15 @@ var car = p => Array.isArray(p)
 
 var cdr = p => Array.isArray(p)
     ? p.slice(1)
-    : (p.improper.length > 0
+    : (p.improper.length > 1
        ? {improper: p.improper.slice(1), tail: p.tail}
        : p.tail);
 
+var cadr = p => car(cdr(p));
+
 var null$Qu = x => Array.isArray(x) && !x.length;
+
+var list$Qu = x => Array.isArray(x);
 
 var append = (...xs) => xs.length == 0
     ? []
@@ -93,7 +97,7 @@ var union = (...sets) => {
     default: break;
     }
     var set = {};
-    for (var s in sets) {
+    for (var s of sets) {
 	for (var x of s) {
 	    set[serialize(x)] = x;
 	}
@@ -107,7 +111,7 @@ var union = (...sets) => {
 
 var difference = (a, b) => {
     var bset = {};
-    for (var x in b) {
+    for (var x of b) {
 	bset[stringify(x)] = 1;
     }
     return a.filter(x=> !(stringify(x) in bset));

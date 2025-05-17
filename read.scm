@@ -17,6 +17,8 @@
       (or (eof-object? c) (eq? c #\))))
 
     (define (add-item! item)
+      ;;(display `(adding ,item) (current-error-port))
+      ;;(newline (current-error-port))
       (set! result (append! result `(,item)))
       (set! total-items (+ total-items 1)))
 
@@ -42,22 +44,22 @@
     (define (skip-line-comment)
       (while (isnt (read-char from-port) end-of-line?)))
 
-    (define (skip-block-comment)
+    (define (skip-block-comment delimiter)
       (let ((inside-comment? #t))
 	(while inside-comment?
 	  (let ((c (read-char from-port)))
 	    (when (eof-object? c)
 	      (set! inside-comment? #f))
-	    (when (eq? c #\|)
+	    (when (eq? c delimiter)
 	      (let ((d (peek-char from-port)))
 		(when (eq? d #\#)
 		  (read-char from-port)
 		  (set! inside-comment? #f))))
 	    (when (eq? c #\#)
 	      (let ((d (peek-char from-port)))
-		(when (eq? d #\|)
+		(when (or (eq? d #\!) (eq? d #\|))
 		  (read-char from-port)
-		  (skip-block-comment))))))))
+		  (skip-block-comment d))))))))
     
     (define (separator? c)
       (or (eof-object? c)
@@ -163,11 +165,14 @@
       (let ((c (read-char from-port)))
 	(match c
 	  ('#\.
-	   (add-improper! (car (read-upto 1 from-port)))
-	   (skip-spaces)
-	   (let ((d (read-char from-port)))
-	     (assert (terminating? d))))
-	   
+	   (if (separator? (peek-char from-port))
+	       (let ((tail (read-upto 1 from-port)))
+		 (add-improper! (car tail))
+		 (skip-spaces)
+		 (let ((d (read-char from-port)))
+		   (assert (terminating? d))))
+	       (add-item!
+		(parse-atom (read-atom #\.)))))
 	  ('#\(
 	   (add-item! (read-upto +inf.0 from-port)))
 
@@ -209,15 +214,18 @@
 		     (integer->char
 		      (string->number (string-drop char-name 1) 16))))
 		   (else
-		    (error "named characters not supported yet")))))
+		    (error "named characters not supported yet" char-name)))))
 	       ('#\|
-		(skip-block-comment))
+		(skip-block-comment #\|))
+	       ('#\!
+		(skip-block-comment #\!))
 	       ('#\;
 		(read-upto 1 from-port)) ;and ignore it
 	       ('#\t
 		(let ((atom (read-atom d)))
-		  (assert (or (equal? atom "t")
-			      (equal? atom "true")))
+		  (unless (or (equal? atom "t")
+			      (equal? atom "true"))
+		    (error "expected #t, got "atom))
 		  (add-item! #t)))
 	       ('#\f
 		(let ((atom (read-atom d)))
@@ -260,7 +268,7 @@
 	       (add-item! (parse-atom (read-atom c))))))))
     result))
 
-(e.g.
+#;(e.g.
  (call-with-input-string " (+ 1 #\\t;one
 2.0 #|two|#(* a . b)) #;(true)
 #t #x10 #;trulty #true 'yes #'let

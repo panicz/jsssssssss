@@ -22,13 +22,16 @@
 		    'syntactic-environment))))
   )
  (jsssssssss
-  (('define-core-transform name (pattern template) ...)
-   ('begin
-     ('set! 'syntactic-environment
-	    ('append ('quote ((pattern template) ...))
-		     'syntactic-environment))
-     ('define-transform name
-       (pattern template) ...)))
+  (include "expander.scm")
+
+  (define-transform define-core-transform  
+    (('define-core-transform name (pattern template) ...)
+     ('begin
+       ('set! 'syntactic-environment
+	      ('append ('quote ((pattern template) ...))
+		       'syntactic-environment))
+       ('define-transform name
+	 (pattern template) ...))))
   
   ))
 
@@ -58,7 +61,7 @@
   )
 
 (define-core-transform let*
-  (('let* () expression)
+  #;(('let* () expression)
    expression)
 
   (('let* () . body)
@@ -197,6 +200,11 @@
    ('not ('is a < b)))
   )
 
+(define-core-transform for
+  (('for variable 'in list . actions)
+   ('for-each ('lambda (variable) . actions)
+	     list)))
+
 (define-core-transform match
   (('match (combination . args) . patterns)
    ('let ((value (combination . args)))
@@ -268,6 +276,9 @@
 	  (('valid-example) source result)
 	  (('invalid-example) source result)))))
 
+((lambda (a) ((lambda (b) ((lambda (result~0) (if result~0 result~0 (+ a b))) (> a b))) (* a 2))) 5)
+
+
 (e.g.
  (parameterize ((unique-symbol-counter 0))
    (expand '(with-transform ((('is a < b)
@@ -277,13 +288,14 @@
 			      (or (is a > b)
 				  (+ a b))))
 	   syntactic-environment))
- ===> ((lambda (a)
-	 ((lambda (b)
-	    ((lambda (result~0)
-	       (if result~0
-		   result~0
-		   (+ a b)))
-	     (> a b)))
-	  (* a 2)))
-       5))
-
+ ===>
+ ((lambda (a)
+    ((lambda (b)
+       ((lambda ()
+	  ((lambda (result~0)
+	     (if result~0
+		 result~0
+		 (+ a b)))
+	   (> a b)))))
+     (* a 2)))
+  5))

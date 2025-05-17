@@ -12,7 +12,6 @@
 	    take drop
 	    union
 	    difference
-	    transpose
 	    write-string
 	    read-all))
 
@@ -211,18 +210,6 @@
 
 (e.g.
  (difference '(a b c) '(b)) ===> (a c))
-
-(define (transpose list-of-lists)
-  (if (null? list-of-lists)
-      '()
-  ;else
-      (apply map list list-of-lists)))
-
-(e.g.
- (transpose '((1 2 3)
-	      (4 5 6))) ===> ((1 4)
-			      (2 5)
-			      (3 6)))
 
 (define* (write-string s #:optional (port (current-output-port)))
   (string-for-each (lambda (c) (write-char c port)) s))
