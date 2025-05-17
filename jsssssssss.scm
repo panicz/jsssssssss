@@ -204,7 +204,9 @@
 (rewrite "runtime/serialize.js")
 
 (let* ((program (read-upto +inf.0 (current-input-port)))
-       (expressions (expand-program program convenience-transforms)))
+       (expressions (expand-program
+		     program
+		     syntactic-environment)))
   (for expression in expressions
        #|
     (display "// ")
