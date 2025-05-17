@@ -121,17 +121,17 @@ class OutputFilePort {
     }
 };
 
-let stdin = new InputFilePort(0);
+let stdin = new InputFilePort(0, "stdin");
 
-let stdout = new OutputFilePort(1);
+let stdout = new OutputFilePort(1, "stdout");
 
-let stderr = new OutputFilePort(2);
+let stderr = new OutputFilePort(2, "stderr");
 
-var current$Mninput$Mnport = make$Mnparameter(stdin, "stdin");
+var current$Mninput$Mnport = make$Mnparameter(stdin);
 
-var current$Mnoutput$Mnport = make$Mnparameter(stdout, "stdout");
+var current$Mnoutput$Mnport = make$Mnparameter(stdout);
 
-var current$Mnerror$Mnport = make$Mnparameter(stderr, "stderr");
+var current$Mnerror$Mnport = make$Mnparameter(stderr);
 
 var call$Mnwith$Mninput$Mnstring = (string, f) => {
     return f(new InputStringPort(string));

@@ -155,7 +155,7 @@ got:
 
 (e.g. (string-match "^[0-9]+$" "123"))
 
-(console.log (string-match "^[0-9]+$" "dupa"))
+(writeln (string-match "^[0-9]+$" "dupa"))
 
 (e.g. (append! '(a b c) 'd) ===> (a b c . d))
 
@@ -178,6 +178,13 @@ got:
      dupa)) ===> "dupa")
 
 
+(writeln
+ (union '(a b c) '(a c e)))
+
+(writeln
+ (difference '(a b c) '(a c e)))
+
+
 ;; the following test only runs when invoking
 ;;
 ;;   $ ./jsssssssss.scm < test.scm > test.js
@@ -189,8 +196,8 @@ got:
 ;;
 ;; (which isn't that bad after all)
 
-(console.log "type any key and press enter:")
+(writeln "type any key and press enter:")
 (let ((c (read-char)))
-  (console.log (string-append "you typed: " (serialize c))))
+  (writeln (string-append "you typed: " (serialize c))))
 
 ;;(end-tests)

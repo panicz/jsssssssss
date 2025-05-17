@@ -11,40 +11,55 @@ const __EOF = {char: false};
 
 var eof$Mnobject$Qu = x => x === __EOF;
 
-var symbol$Mn$Gtstring = s => s.symbol.replace(/^[$]N([0-9])/, "$1")
-    .replace(/[$]Pl/g, "+")
-    .replace(/[$]Mn/g, "-")
-    .replace(/[$]St/g, "*")
-    .replace(/[$]Sl/g, "/")
-    .replace(/[$]Ls/g, "<")
-    .replace(/[$]Gt/g, ">")
-    .replace(/[$]Eq/g, "=")
-    .replace(/[$]Ex/g, "!")
-    .replace(/[$]Pc/g, "%")
-    .replace(/[$]Qu/g, "?")
-    .replace(/[$]At/g, "@")
-    .replace(/[$]Tl/g, "~")
-    .replace(/[$]Nm/g, "#");
+var symbol$Mn$Gtstring = s => {
+    if (typeof(s.symbol) == 'undefined') {
+	throw new Error("not a symbol: "+s);
+    }
+    return s.symbol
+	.replace(/^[$]Kw/, "")
+	.replace(/^[$]([0-9])/, "$1")
+	.replace(/[$]Pl/g, "+")
+	.replace(/[$]Mn/g, "-")
+	.replace(/[$]St/g, "*")
+	.replace(/[$]Sl/g, "/")
+	.replace(/[$]Ls/g, "<")
+	.replace(/[$]Gt/g, ">")
+	.replace(/[$]Eq/g, "=")
+	.replace(/[$]Ex/g, "!")
+	.replace(/[$]Pc/g, "%")
+	.replace(/[$]Qu/g, "?")
+	.replace(/[$]At/g, "@")
+	.replace(/[$]Tl/g, "~")
+	.replace(/[$]Dt/g, ".")
+	.replace(/[$]Nm/g, "#");
+}
 
-var string$Mn$Gtsymbol = s => { return {
-    symbol: s.replace(/^([0-9])/, "$$N$1")
-	.replace(/[+]/g, "$Pl")
-	.replace(/[-]/g, "$Mn")
-	.replace(/[*]/g, "$St")
-	.replace(/[/]/g, "$Sl")
-	.replace(/[<]/g, "$Ls")
-	.replace(/[>]/g, "$Gt")
-	.replace(/[=]/g, "$Eq")
-	.replace(/[!]/g, "$Ex")
-	.replace(/[%]/g, "$Pc")
-	.replace(/[?]/g, "$Qu")
-	.replace(/[@]/g, "$At")
-	.replace(/[~]/g, "$Tl")
-	.replace(/[#]/g, "$Nm")}; };
+var string$Mn$Gtsymbol = s => {
+    var name = (s == "for")
+	? "$Kwfor"
+	: (s.replace(/^([0-9])/, "$$N$1")
+	   .replace(/[+]/g, "$Pl")
+	   .replace(/[-]/g, "$Mn")
+	   .replace(/[*]/g, "$St")
+	   .replace(/[/]/g, "$Sl")
+	   .replace(/[<]/g, "$Ls")
+	   .replace(/[>]/g, "$Gt")
+	   .replace(/[=]/g, "$Eq")
+	   .replace(/[!]/g, "$Ex")
+	   .replace(/[%]/g, "$Pc")
+	   .replace(/[?]/g, "$Qu")
+	   .replace(/[@]/g, "$At")
+	   .replace(/[~]/g, "$Tl")
+	   .replace(/[.]/g, "$Dt")
+	   .replace(/[#]/g, "$Nm"));
+    return { symbol: name };
+};
 
 var list$Mn$Gtstring = s => s.map(c => c.char).join('');
 
-var string$Mn$Gtlist = s => s.split('').map(c =>{return {char: c}});
+var string$Mn$Gtlist = s => s.split('').map(c =>{
+    return {char: c}
+});
 
 var string$Mnappend = (...args) => args.join('');
 
@@ -76,3 +91,7 @@ var string$Mntake = (s, n) => s.slice(0, n);
 var string$Mndrop = (s, n) => s.slice(n);
 
 var string$Mnmatch = (pat, s) => s.match(new RegExp(pat))||false;
+
+var string$Mnreplace$Mnsubstring = (s, p, r) =>
+    s.replace(new RegExp(p.replace(/[-\/\\^$.*+?()[\]{}|]/g, '\\$&'),
+			 'g'), r);
