@@ -95,11 +95,11 @@
     (improper-list-representation lisp-data))
    ((char? lisp-data)
     (string-append 
-     "{char: '"
+     "{char: \""
      (match lisp-data
-       ('#\' "\\'")
+       ('#\" "\\\"")
        ('#\\ "\\\\")
-       ('#\x20 "\\n")
+       ('#\x0a "\\n") ;; !!
        (c (let ((n (char->integer c)))
 	    (if (is n < 32)
 		(string-append
@@ -108,7 +108,7 @@
 			  "")
 		 (number->string n 16))
 		(list->string (list c))))))
-     "'}"))
+     "\"}"))
    ((string? lisp-data)
     (string-append "\"" (string-escape lisp-data) "\""))
    ((vector? lisp-data)

@@ -232,3 +232,6 @@ var file$Mnexists$Qu = (name) => fs.existsSync(name);
 
 var delete$Mnfile = (name) => fs.unlinkSync(name);
 
+
+
+var display = x => stdout.writeString(x)
