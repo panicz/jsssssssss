@@ -194,14 +194,20 @@ var open$Mnoutput$Mnfile = (name) => {
 
 var call$Mnwith$Mninput$Mnfile = (name, f) => {
     var file = open$Mninput$Mnfile(name);
-    f(file);
-    file.close();
+    try {
+	return f(file);
+    } finally {
+	file.close();
+    }
 }
 
 var call$Mnwith$Mnoutput$Mnfile = (name, f) => {
     var file = open$Mnoutput$Mnfile(name);
-    f(file);
-    file.close();
+    try {
+	return f(file);
+    } finally {
+	file.close();
+    }
 }
 
 var with$Mninput$Mnfrom$Mnfile = (name, f) => {

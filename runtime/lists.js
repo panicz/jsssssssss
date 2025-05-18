@@ -57,7 +57,7 @@ var for$Mneach = (f, l) => { for (var x of l) { f(x); } };
 var map = (f, ...ls) => {
     switch (ls.length) {
     case 0: return [];
-    case 1: return ls[0].map(f);
+    case 1: return ls[0].map(x => f(x));
     default: break;
     }
     var result = [];
