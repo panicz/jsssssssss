@@ -41,6 +41,8 @@ var $Gt$Eq = mk_seq_rel((n,m) => n >= m);
 
 var $Ls$Eq = mk_seq_rel((n,m) => n <= m);
 
+var noop = ()=>{};
+
 var apply = (f, ...args) => {
     var collected = args.slice(0, args.length-1)
         .concat(args[args.length-1]);

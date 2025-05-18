@@ -178,6 +178,8 @@ var write$Mnchar = (c, p = current$Mnoutput$Mnport()) => p.writeChar(c);
 
 var write$Mnstring = (s, p = current$Mnoutput$Mnport()) => p.writeString(s);
 
+var display = (s, p = current$Mnoutput$Mnport()) => p.writeString(stringify(s));
+
 var newline = (p = current$Mnoutput$Mnport()) => p.writeChar({char: '\n'});
 
 var close$Mnoutput$Mnport = p => p.close();

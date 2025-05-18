@@ -99,7 +99,7 @@
      (match lisp-data
        ('#\' "\\'")
        ('#\\ "\\\\")
-       ('#\x20 "\\n")
+       ('#\x0a "\\n")
        (c (let ((n (char->integer c)))
 	    (if (is n < 32)
 		(string-append
@@ -172,18 +172,18 @@
      (string-append
       "(()=>{\nwhile("(to-js condition)"){\n"
       (to-js `(begin . ,actions))"\n}})()"))
-    
+
     (`(catch ,handler ,expression)
      (string-append
       "(()=>{\ntry{\nreturn "(to-js expression)"\n}"
       "catch(__e){\nreturn "(to-js handler)"(__e);"
       "\n};})()"))
-    
+
     (`(try-finally ,attempt ,eventually)
      (string-append
       "(()=>{try{\nreturn "(to-js attempt)"\n}"
       "finally{\n"(to-js eventually)"\n};})()"))
-    
+
     (`(,fun . ,args)
      (if (list? args)
 	 (string-append
