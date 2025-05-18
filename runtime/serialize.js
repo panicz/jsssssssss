@@ -28,7 +28,7 @@ var serialize = e => {
     }
 };
 
-var equal$Qu = (x,y) => serialize(x) == serialize(y) /// XD
+var equal$Qu = mk_seq_rel((x,y) => serialize(x) == serialize(y)); /// i nikomu nie wolno się z tego śmiać
 
 var writeln = e => { console.log(serialize(e)) ; return e };
 

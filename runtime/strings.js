@@ -95,3 +95,8 @@ var string$Mnmatch = (pat, s) => s.match(new RegExp(pat))||false;
 var string$Mnreplace$Mnsubstring = (s, p, r) =>
     s.replace(new RegExp(p.replace(/[-\/\\^$.*+?()[\]{}|]/g, '\\$&'),
 			 'g'), r);
+
+
+var char$Mnnumeric$Qu = x => char$Qu(x) && /[0-9]/.test(x.char);
+
+var string$Eq$Qu = mk_seq_rel((x,y) => string$Qu(x) && string$Qu(y) && x==y)
