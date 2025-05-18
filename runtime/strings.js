@@ -99,4 +99,4 @@ var string$Mnreplace$Mnsubstring = (s, p, r) =>
 
 var char$Mnnumeric$Qu = x => char$Qu(x) && /[0-9]/.test(x.char);
 
-var string$Eq$Qu = mk_seq_rel((x,y) => string$Qu(x) && string$Qu(y) && x.string==y.string)
+var string$Eq$Qu = mk_seq_rel((x,y) => string$Qu(x) && string$Qu(y) && x==y)
