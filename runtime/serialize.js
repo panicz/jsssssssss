@@ -28,9 +28,12 @@ var serialize = e => {
     }
 };
 
-var equal$Qu = (x,y) => serialize(x) == serialize(y) /// XD
+var equal$Qu = mk_seq_rel(
+    (x,y) => serialize(x) == serialize(y)); /// XD
 
-var writeln = e => { console.log(serialize(e)) ; return e };
+var writeln = (...args) => {
+    console.log(args.map(serialize).join(''));
+};
 
 let stringify = (e) => {
     if(string$Qu(e)) {

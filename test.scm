@@ -184,6 +184,7 @@ got:
 (writeln
  (difference '(a b c) '(a c e)))
 
+(writeln (assoc 'b '((a . 1) (b . 2) (c . 3))))
 
 ;; the following test only runs when invoking
 ;;

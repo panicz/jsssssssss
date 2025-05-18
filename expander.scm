@@ -112,13 +112,14 @@
 	(values (map (lambda (bindings)
 		       (map cdr bindings))
 		     list-of-bindings)))
-    (unless (apply equal? names)
-      (writeln names))
+    ;;(assert (apply equal? names))
     (match names
       (`(,names . ,_)
        (apply map list names values))
       ('()
        '()))))
+
+(writeln "dupa")
 
 (e.g.
  (zip-bindings '(((a . 1) (b . 2) (c . 3))
@@ -171,6 +172,21 @@
 	 (rest (drop limit form)))
     (carry #;from prefix #;to rest
 		  #;until successful-match?)))
+
+(e.g.
+ (bind '('let* ((name-1 value-1)
+  		(name-2 value-2) ...)
+	  . body)
+       '(let* ((a 5)
+	      (b (* a 2)))
+	 (or (is a > b)
+	     (+ a b)))
+       '())
+ ===> ((value-1 . 5)
+       (name-1 . a)
+       (name-2 b)
+       (value-2 (* a 2))
+       (body (or (is a > b) (+ a b)))))
 
 (define (fill template #;with bindings)
   (let* ((missing (difference (used-symbols template)
@@ -250,6 +266,9 @@
 	 (first-matching rest)))))
 
 (define (expand-program program transforms)
+  (with-output-to-port (current-error-port)
+    (lambda ()
+      (writeln "expanding "program)))
   (match program
     ('() '())
     
@@ -289,6 +308,14 @@
 			 (let ((bindings (bind (car pattern&template)
 					       expression '())))
 			   (and bindings
+				(with-output-to-port
+				    (current-error-port)
+				  (lambda ()
+				    (writeln "matched "
+					     pattern&template)
+				    #t))
+
+				
 				`(,bindings
 				  ,(cadr pattern&template)))))
 		       transforms)))

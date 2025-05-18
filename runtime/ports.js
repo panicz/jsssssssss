@@ -182,6 +182,16 @@ var newline = (p = current$Mnoutput$Mnport()) => p.writeChar({char: '\n'});
 
 var close$Mnoutput$Mnport = p => p.close();
 
+var with$Mnoutput$Mnto$Mnport = (port, thunk) => {
+    push$Mnparameter(current$Mnoutput$Mnport, port);
+    try {
+	return thunk();
+    }
+    finally {
+	pop$Mnparameter(current$Mnoutput$Mnport);
+    }
+};
+
 var open$Mninput$Mnfile = (name) => {
     let fd = fs.openSync(name, "r");
     return new InputFilePort(fd, name);
@@ -196,13 +206,13 @@ var call$Mnwith$Mninput$Mnfile = (name, f) => {
     var file = open$Mninput$Mnfile(name);
     f(file);
     file.close();
-}
+};
 
 var call$Mnwith$Mnoutput$Mnfile = (name, f) => {
     var file = open$Mnoutput$Mnfile(name);
     f(file);
     file.close();
-}
+};
 
 var with$Mninput$Mnfrom$Mnfile = (name, f) => {
     let p = open$Mninput$Mnfile(name);
