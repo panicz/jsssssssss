@@ -18,5 +18,5 @@ var string$Mn$Gtnumber = (s, radix=10) => {
     return parseInt(s, radix);
 };
 
-var finite$Qu = x => x!=Infinity && x!=-Infinity && x!=NaN;
-
+var finite$Qu = isFinite;
+var nan$Qu = isNaN;
