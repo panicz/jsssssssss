@@ -1,5 +1,10 @@
 ;;; (begin-tests "basic tests")
 
+(cond-expand
+ (guile
+  (use-modules (base)))
+ (else))
+
 (define (factorial n)
   (if (<= n 1)
       1
@@ -68,42 +73,9 @@
 	     (a (read-char)))
 	(list d u p a))))) ===> "dupa")
 
-(define a '(1 2 3))
-
-(define b (append! a '(4 5 6) '(7 8 9)))
-
-(e.g. a ===> (1 2 3 4 5 6 7 8 9))
-(e.g. b ===> (1 2 3 4 5 6 7 8 9))
-(e.g. (eq? a b))
-
-(define A '(1 2 3))
-
-(define B (append A '(4 5 6) '(7 8 9)))
-
-(e.g. A ===> (1 2 3))
-(e.g. B ===> (1 2 3 4 5 6 7 8 9))
-(e.g. (isnt A eq? B))
-(e.g. (isnt b eq? B))
-(e.g. (equal? b B))
-
 (writeln (current-output-port))
 (writeln current-output-port)
 (writeln "a'\"\\b")
-
-(e.g.
- (catch (lambda (e) (slot-ref e 'message))
-   (e.g. (+ 2 2) ===> 5)) ===> "while evaluating
-
-  (+ 2 2)
-
-expected:
-
-  5
-
-got:
-
-  4
-")
 
 (e.g. (string->list "dupa") ===> (#\d #\u #\p #\a))
 
@@ -121,11 +93,11 @@ got:
 	 (while (isnt (peek-char) eof-object?)
 	   (write-char (read-char))))))) ===> "dupa")
 
-(e.g. (/ 1 0) ===> +inf.0)
-(e.g. (/ -1 0) ===> -inf.0)
-(e.g. (/ 0 0) ===> +nan.0)
-(e.g. (/ 1 2) ===> 0.5)
-(e.g. (/ 2 2 2 2) ===> 0.25)
+(e.g. (/ 1.0 0.0) ===> +inf.0)
+(e.g. (/ -1.0 0.0) ===> -inf.0)
+(e.g. (nan? (/ 0.0 0.0)))
+(e.g. (/ 1.0 2.0) ===> 0.5)
+(e.g. (/ 2.0 2.0 2.0 2.0) ===> 0.25)
 
 (e.g. (map + '(1 2 3) '(4 5 6)) ===> (5 7 9))
 
@@ -153,11 +125,51 @@ got:
    (map (lambda (i) (string-ref s i)) '(0 1 2 3)))
  ===> (#\d #\u #\p #\a))
 
-(e.g. (string-match "^[0-9]+$" "123"))
+(define A '(1 2 3))
 
-(writeln (string-match "^[0-9]+$" "dupa"))
+(define B (append A '(4 5 6) '(7 8 9)))
 
-(e.g. (append! '(a b c) 'd) ===> (a b c . d))
+(e.g. A ===> (1 2 3))
+(e.g. B ===> (1 2 3 4 5 6 7 8 9))
+(e.g. (isnt A eq? B))
+
+(cond-expand
+ (jsssssssss
+  (define a '(1 2 3))
+
+  (define b (append! a '(4 5 6) '(7 8 9)))
+
+  (e.g. a ===> (1 2 3 4 5 6 7 8 9))
+  (e.g. b ===> (1 2 3 4 5 6 7 8 9))
+  (e.g. (eq? a b))
+
+  (e.g. (isnt b eq? B))
+  (e.g. (equal? b B))
+  
+  (e.g. (string-match "^[0-9]+$" "123"))
+
+  (writeln (string-match "^[0-9]+$" "dupa"))
+
+  (e.g. (append! '(a b c) 'd) ===> (a b c . d))
+
+  (e.g.
+   (catch (lambda (e) (slot-ref e 'message))
+     (e.g. (+ 2 2) ===> 5)) ===> "while evaluating
+
+  (+ 2 2)
+
+expected:
+
+  5
+
+got:
+
+  4
+")
+
+  
+  )
+ (else))
 
 (e.g.
  (begin
@@ -198,6 +210,6 @@ got:
 
 (writeln "type any key and press enter:")
 (let ((c (read-char)))
-  (writeln (string-append "you typed: " (serialize c))))
+  (writeln "you typed: " c))
 
 ;;(end-tests)
