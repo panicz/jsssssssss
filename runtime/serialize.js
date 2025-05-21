@@ -63,14 +63,16 @@ var equal$Qu = mk_seq_rel((x,y) => {
 		    && objects$Mnequal$Qu(x, y))));
 });
 
-var writeln = e => { console.log(serialize(e)) ; return e };
-
 let stringify = (e) => {
     if(string$Qu(e)) {
 	return e;
     }
     return serialize(e);
 }
+
+var writeln = (...args) => {
+    console.log(args.map(stringify).join(''));
+};
 
 var error = (...msg) => { throw new Error(msg.map(stringify).join('')); };
 
