@@ -276,9 +276,6 @@
 	  (('valid-example) source result)
 	  (('invalid-example) source result)))))
 
-((lambda (a) ((lambda (b) ((lambda (result~0) (if result~0 result~0 (+ a b))) (> a b))) (* a 2))) 5)
-
-
 (e.g.
  (parameterize ((unique-symbol-counter 0))
    (expand '(with-transform ((('is a < b)
