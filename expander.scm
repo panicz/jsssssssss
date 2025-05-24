@@ -8,7 +8,7 @@
 	      unique-symbol-counter)))
   (jsssssssss
    (include "read.scm")))
-   
+  
 ;; to find out what actual transforms look like (to be passed
 ;; as the second argument to the `expand` and `expand-program`
 ;; procedures, check out the `transforms.scm` file
@@ -59,12 +59,62 @@
       (symbol->string base-symbol)
       "~"(number->string ordinal)))))
 
+(define (bind-fragments
+         fragments #;to string
+         #;given bound-variables)
+  (match fragments
+    ('()
+     (and (= (string-length string) 0)
+	  bound-variables))
+    
+    (`((quote ,s))
+     (and (eq? s symbol) bound-variables))
+    
+    (`((,last))
+     (assert (symbol? last))
+     (merge-bindings `((,last . ,(string->symbol
+                                  string))
+                       bound-variables)))
+    
+    (`((quote ,s) . ,rest)
+     (let ((prefix (symbol->string s)))
+       (and (string-prefix? prefix string)
+            (bind-fragments
+             rest (string-drop string
+                               (string-length
+                                prefix))
+             bound-variables))))
+    (`(,s (quote ,next) . ,rest)
+     (let ((pattern (symbol->string next)))
+       (let another ((start 1))
+         (let ((position (string-contains
+			  string pattern
+			  start)))
+	   (and position
+                (or (bind-fragments
+                     rest (string-drop string
+                                       position)
+                     (merge-bindings
+                      `((,s . ,(string->symbol
+                                (string-take
+                                 string
+                                 position)))
+                        bound-variables)))
+                    (another (+ position 1))))))))
+     ))
+
 (define (bind pattern #;to form
 	      #;given bound-variables)
   (match pattern
     (`(quote ,literal)
      (and (equal? form literal)
           bound-variables))
+    
+    (`(unquote-splicing ,fragments)
+     (bind-fragments
+      fragments #;to (symbol->string form)
+      #;given bound-variables))
+    
     (`(,repetition ... . ,remaining)
      (bind-sequence repetition remaining form
                     bound-variables))
@@ -183,10 +233,25 @@
 			    missing) ,@bindings)))
     (fill-template template bindings)))
 
+(define (fill-fragments fragments #;with bindings)
+  (string->symbol
+   (string-join (map (lambda (fragment)
+		       (match fragment
+			 (`(quote ,symbol)
+			  (symbol->string symbol))
+			 (_
+			  (symbol->string
+			   (assoc-ref bindings
+				      fragment)))))
+		     fragments)
+		"")))
+
 (define (fill-template template #;with bindings)
   (match template
     (`(quote ,literal)
      literal)
+    (`(unquote-splicing ,fragments)
+     (fill-fragments fragments #;with bindings))
     (`(,repeated ... . ,rest)
      `(,@(fill-sequence repeated bindings)
        . ,(fill-template rest #;with bindings)))
@@ -348,3 +413,8 @@
            (expand transformed transforms))))
     (_
      expression)))
+
+(e.g.
+ (expand '(query ?x ?y)
+	 '((query ,@('? vars) ...)
+	   (find vars)))
