@@ -8,7 +8,7 @@
 	      unique-symbol-counter)))
   (jsssssssss
    (include "read.scm")))
-  
+
 ;; to find out what actual transforms look like (to be passed
 ;; as the second argument to the `expand` and `expand-program`
 ;; procedures, check out the `transforms.scm` file
@@ -36,6 +36,10 @@
   (match expression
     (`(quote ,literal)
      '())
+    
+    (`(unquote-splicing ,item)
+     (used-symbols item))
+
     (`(,repeated ... . ,rest)
      (union (used-symbols repeated)
 	    (used-symbols rest)))
@@ -70,11 +74,11 @@
     (`((quote ,s))
      (and (eq? s symbol) bound-variables))
     
-    (`((,last))
+    (`(,last)
      (assert (symbol? last))
      (merge-bindings `((,last . ,(string->symbol
-                                  string))
-                       bound-variables)))
+                                  string)))
+                     bound-variables))
     
     (`((quote ,s) . ,rest)
      (let ((prefix (symbol->string s)))
@@ -84,6 +88,7 @@
                                (string-length
                                 prefix))
              bound-variables))))
+    
     (`(,s (quote ,next) . ,rest)
      (let ((pattern (symbol->string next)))
        (let another ((start 1))
@@ -93,15 +98,21 @@
 	   (and position
                 (or (bind-fragments
                      rest (string-drop string
-                                       position)
+                                       (+ position
+					  (string-length pattern)))
                      (merge-bindings
                       `((,s . ,(string->symbol
                                 (string-take
                                  string
-                                 position)))
-                        bound-variables)))
+                                 position))))
+                      bound-variables))
                     (another (+ position 1))))))))
-     ))
+    ))
+
+(e.g.
+ (bind '('query ,@('? var '- n) ...) '(query ?item-1 ?item-2) '())
+ ===> ((n #{1}# #{2}#) (var item item)))
+
 
 (define (bind pattern #;to form
 	      #;given bound-variables)
@@ -135,6 +146,7 @@
          (and (equal? pattern form)
               bound-variables)))))
 
+
 (define (merge-bindings bindings . bindings*)
   (define (merge-bindings a b)
     (and a b
@@ -162,8 +174,7 @@
 	(values (map (lambda (bindings)
 		       (map cdr bindings))
 		     list-of-bindings)))
-    (unless (apply equal? names)
-      (writeln names))
+    (assert (apply equal? names))
     (match names
       (`(,names . ,_)
        (apply map list names values))
@@ -245,6 +256,9 @@
 				      fragment)))))
 		     fragments)
 		"")))
+
+(e.g.
+ (fill-fragments '('? var '- n) '((var . item) (n . #{1}#))) ===> ?item-1)
 
 (define (fill-template template #;with bindings)
   (match template
@@ -415,6 +429,6 @@
      expression)))
 
 (e.g.
- (expand '(query ?x ?y)
-	 '((query ,@('? vars) ...)
-	   (find vars)))
+ (expand '(query-variables ?x-0 ?y-1)
+	 '((('query-variables ,@('? vars '- n) ...)
+	    ('find (vars ,@(vars ': n)) ...)))) ===> (find (x x:0) (y y:1)))
