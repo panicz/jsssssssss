@@ -109,11 +109,6 @@
                     (another (+ position 1))))))))
     ))
 
-(e.g.
- (bind '('query ,@('? var '- n) ...) '(query ?item-1 ?item-2) '())
- ===> ((n #{1}# #{2}#) (var item item)))
-
-
 (define (bind pattern #;to form
 	      #;given bound-variables)
   (match pattern
@@ -232,6 +227,10 @@
 	 (rest (drop limit form)))
     (carry #;from prefix #;to rest
 		  #;until successful-match?)))
+
+(e.g.
+ (bind '('query ,@('? var '- n) ...) '(query ?item-one ?item-two) '())
+ ===> ((n one two) (var item item)))
 
 (define (fill template #;with bindings)
   (let* ((missing (difference (used-symbols template)
