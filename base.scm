@@ -13,7 +13,7 @@
 	    union
 	    difference
 	    write-string
-	    read-all))
+	    writeln))
 
 (define-syntax e.g.
   (syntax-rules (===>)
@@ -213,3 +213,7 @@
 
 (define* (write-string s #:optional (port (current-output-port)))
   (string-for-each (lambda (c) (write-char c port)) s))
+
+(define (writeln . args)
+  (for-each display args)
+  (newline))

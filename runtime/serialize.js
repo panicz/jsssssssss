@@ -28,9 +28,40 @@ var serialize = e => {
     }
 };
 
-var equal$Qu = mk_seq_rel((x,y) => serialize(x) == serialize(y)); /// i nikomu nie wolno się z tego śmiać
+let arrays$Mnequal$Qu = (a, b) => {
+    if (a.length != b.length) {
+	return false;
+    }
+    for (var i = 0; i < a.length; ++i) {
+	if (!equal$Qu(a[i], b[i])) {
+	    return false;
+	}
+    }
+    return true;
+}
 
-var writeln = e => { console.log(serialize(e)) ; return e };
+let objects$Mnequal$Qu = (a, b) => {
+    var a_keys = Object.keys(a);
+    var b_keys = Object.keys(b);
+    if (a_keys.length != b_keys.length) {
+	return false;
+    }
+    for (var x of a_keys) {
+	if (!(x in b) || !equal$Qu(a[x], b[x])) {
+	    return false;
+	}
+    }
+    return true;
+}
+
+var equal$Qu = mk_seq_rel((x,y) => {
+    return x === y
+	|| (typeof(x) == typeof(y)
+	    && ((Array.isArray(x) && Array.isArray(y)
+		 && arrays$Mnequal$Qu(x,y))
+		|| (typeof(x) == 'object'
+		    && objects$Mnequal$Qu(x, y))));
+});
 
 let stringify = (e) => {
     if(string$Qu(e)) {
@@ -38,6 +69,10 @@ let stringify = (e) => {
     }
     return serialize(e);
 }
+
+var writeln = (...args) => {
+    console.log(args.map(stringify).join(''));
+};
 
 var error = (...msg) => { throw new Error(msg.map(stringify).join('')); };
 

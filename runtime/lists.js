@@ -25,7 +25,7 @@ var cdr = p => Array.isArray(p)
        ? {improper: p.improper.slice(1), tail: p.tail}
        : p.tail);
 
-var cadr = p => car(cdr(p));
+var cadr = p => Array.isArray(p) ? p[1] : car(cdr(p));
 
 var null$Qu = x => Array.isArray(x) && !x.length;
 

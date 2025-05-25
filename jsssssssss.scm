@@ -132,6 +132,10 @@
 (define (to-js expression)
   (match expression
 
+    (`(lambda ,args ,body)
+     (string-append
+      "(("(args-to-js args)")=>"(to-js body)")"))
+    
     (`(lambda ,args . ,body)
      (string-append
       "(("(args-to-js args)")=>{\n"
