@@ -338,12 +338,18 @@
     (`(,operator . ,operands)
      (let ((transformed (fix transform expression)))
        (if (equal? expression transformed)
-	   `(,(expand operator transforms)
-	     . ,(if (list? operands)
-		    (map (lambda (operand)
-			   (expand operand transforms))
-			 operands)
-		    operands))
+	   (let ((operator* (expand operator transforms)))
+	     (if (and (list? operands)
+		      (equal? operator operator*))
+		 `(,operator*
+		   . ,(if (list? operands)
+			  (map (lambda (operand)
+				 (expand operand
+					 transforms))
+			       operands)
+			  operands))
+		 (expand `(,operator* . ,operands)
+			 transforms)))
        ;else
            (expand transformed transforms))))
     (_
