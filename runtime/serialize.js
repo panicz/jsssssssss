@@ -1,5 +1,6 @@
 var serialize = e => {
     switch(true) {
+    //case e==undefined: return "#<undefined>";
     case null$Qu(e): return "()";
     case boolean$Qu(e): return e ? "#t" : "#f";
     case number$Qu(e): return number$Mn$Gtstring(e);
@@ -8,13 +9,14 @@ var serialize = e => {
     case string$Qu(e): return JSON.stringify(e);
     case vector$Qu(e): return "#("+e.vector.map(serialize).join(" ")+")";
     case pair$Qu(e):
-	if(Array.isArray(e))
-	    return "("+e.map(serialize).join(" ")+")";
-	if (improper$Qu(e))
-	    return "("+e.improper.map(serialize).join(" ")
-	    + " . " + serialize(e.tail) + ")";
-	return "(" + serialize(e.car) + " . "
-            + serialize(e.cdr) + ")";
+        var str = "(";
+        while(true) {
+            str += serialize(e.car);
+            if(null$Qu(e.cdr)) { return str + ")"; }
+            str += " ";
+            if(pair$Qu(e.cdr)) { e = e.cdr; }
+            else { return str += ". " + serialize(e.cdr) + ")"; }
+        }
     case procedure$Qu(e): return "#<"+e.toString()+">";
     case eof$Mnobject$Qu(e): return "#<eof-object>";
     default:
@@ -70,9 +72,7 @@ let stringify = (e) => {
     return serialize(e);
 }
 
-var writeln = (...args) => {
-    console.log(args.map(stringify).join(''));
-};
+var writeln = es => console.log(serialize(es));
 
 var error = (...msg) => { throw new Error(msg.map(stringify).join('')); };
 

@@ -7,10 +7,14 @@ var make$Mnvector = (k,f) => { return {vector: Array(k).fill(f)} }
 var vector = (...xs) => {return {vector: xs} }
 
 var list$Mn$Gtvector = l => {
-    if(Array.isArray(l)) return {vector: l};
-    else throw "list->vector wrong type argument"
+    if(!list$Qu(l) && !null$Qu(l)) throw "list->vector wrong type argument";
+    var ll = length(l);
+    var xs = Array(ll);
+    for(var i=0;i<ll;i++) { xs[i] = l.car; l = l.cdr; }
+    return {vector: xs};
 }
-var vector$Mn$Gtlist = v => v.vector;
+
+var vector$Mn$Gtlist = v => __list(...v.vector);
 
 var vector$Mnlength = v => v.vector.length;
 

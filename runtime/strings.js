@@ -55,15 +55,23 @@ var string$Mn$Gtsymbol = s => {
     return { symbol: name };
 };
 
-var list$Mn$Gtstring = s => s.map(c => c.char).join('');
+var list$Mn$Gtstring = s => __list(...s.map(c => c.char).join(''));
 
-var string$Mn$Gtlist = s => s.split('').map(c =>{
-    return {char: c}
-});
+var string$Mn$Gtlist = s => __list(...s.split('').map(c =>{ return {char: c} }));
 
 var string$Mnappend = (...args) => args.join('');
 
-var string$Mnjoin = (strings, joint='') => strings.join(joint);
+var string$Mnjoin = (strings, joint='') => {
+    res = "";
+    while(pair$Qu(strings)) {
+        if(!string$Qu(strings.car)) throw "string-join wrong type argument";
+        res += strings.car;
+        strings = strings.cdr;
+        if(null$Qu(strings)) return res;
+        if(!pair$Qu(strings)) throw "string-join wrong type argument";
+        res += joint;
+    }
+};
 
 let charName = c => {
     let i = c.char.codePointAt(0);

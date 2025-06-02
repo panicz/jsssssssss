@@ -91,7 +91,7 @@ ple-ple-ple
 (expecting 9 here: 9)
 (just some silly begin stuff)
 ((fac 5) is 120)
-((and this should be sth around 14400:) 14400)
+((and this should be sth around $N14400:) 14400)
 (expecting (5 25 (5 5) (25 25)) below:)
 (5 25 (5 5) (25 25))
 (leaky-var is 23 inside begin)
@@ -142,10 +142,10 @@ here-as-well
 (unquote (+ 2 3))
 (h= a t= (b c))
 (implicit begin in match works ok)
-(here is your 5:)
+(here is your $N5:)
 5
 (explicit begin in match works ok too)
-(here is another 5:)
+(here is another $N5:)
 5
 (me should be (q w e) -- (q w e))
 (i are (q w e a s d) -- (q w e a s d))

@@ -57,24 +57,11 @@
            ;;; TODO... (\[abfve]? perhaps unicode stuff \u__ too?)
 	       )))
 
-(define (improper-list-representation c)
-  (with-output-to-string
-    (lambda ()
-      (write-string "{improper: [")
-      (while (pair? c)
-	(write-string (js-representation (car c)))
-	(if (pair? (cdr c))
-	    (write-string ",")
-	    (write-string "]"))
-	(set! c (cdr c)))
-      (write-string ", tail: ")
-      (write-string (js-representation c))
-      (write-string "}"))))
 
 (define (js-representation lisp-data)
   (cond
-   ((list? lisp-data)
-    (string-append "[" (string-join (map js-representation lisp-data) ",") "]"))
+   ((null? lisp-data)
+    "[]")
    ((symbol? lisp-data)
     (string-append "{symbol: \""(symbol->js lisp-data)"\"}"))
    ((number? lisp-data)
@@ -92,7 +79,8 @@
    ((eq? lisp-data #f)
     "false")
    ((pair? lisp-data)
-    (improper-list-representation lisp-data))
+    (string-append "{car: " (js-representation (car lisp-data))
+                   ",cdr: " (js-representation (cdr lisp-data)) "}"))
    ((char? lisp-data)
     (string-append 
      "{char: \""
@@ -129,16 +117,21 @@
     (last
      (string-append "..."(symbol->js last)))))
 
+(define (unlist-dot-arg args)
+  (let* ((last-arg (let seek ((args args))
+                     (if (pair? args)
+                         (seek (cdr args))
+                         args)))
+         (sym (symbol->js last-arg)))
+    (string-append "var " sym "=__list(..." sym ");\n"))) ;; XD
+
 (define (to-js expression)
   (match expression
-
-    (`(lambda ,args ,body)
-     (string-append
-      "(("(args-to-js args)")=>"(to-js body)")"))
     
     (`(lambda ,args . ,body)
      (string-append
       "(("(args-to-js args)")=>{\n"
+      (if (list? args) "" (unlist-dot-arg args)) ;; he_he
       (sequence-to-js body) "})"))
 
     (`(if ,condition
@@ -187,7 +180,7 @@
      (string-append
       "(()=>{try{\nreturn "(to-js attempt)"\n}"
       "finally{\n"(to-js eventually)"\n};})()"))
-    
+
     (`(,fun . ,args)
      (if (list? args)
 	 (string-append
