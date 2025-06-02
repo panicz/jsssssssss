@@ -55,7 +55,7 @@ var string$Mn$Gtsymbol = s => {
     return { symbol: name };
 };
 
-var list$Mn$Gtstring = s => __list(...s.map(c => c.char).join(''));
+var list$Mn$Gtstring = s => __unlist(s).map(c => c.char).join('');
 
 var string$Mn$Gtlist = s => __list(...s.split('').map(c =>{ return {char: c} }));
 

@@ -56,14 +56,14 @@ let objects$Mnequal$Qu = (a, b) => {
     return true;
 }
 
-var equal$Qu = mk_seq_rel((x,y) => {
-    return x === y
-	|| (typeof(x) == typeof(y)
-	    && ((Array.isArray(x) && Array.isArray(y)
-		 && arrays$Mnequal$Qu(x,y))
-		|| (typeof(x) == 'object'
-		    && objects$Mnequal$Qu(x, y))));
-});
+var __equal2 = (x,y) => (eq$Qu(x,y)
+                         || (vector$Qu(x) && vector$Qu(y) && 
+                             arrays$Mnequal$Qu(x.vector, y.vector))
+                         || (pair$Qu(x) && pair$Qu(y) &&
+                             __equal2(x.car, y.car) &&
+                             __equal2(x.cdr, y.cdr)));
+
+var equal$Qu = mk_seq_rel(__equal2);
 
 let stringify = (e) => {
     if(string$Qu(e)) {
