@@ -334,6 +334,7 @@
 (writeln (eq? 2 (cond ((assv 'b '((a 1) (b 2))) => cadr)
                       (else #f))))
 
+(writeln 'numerals------)
 
 (writeln (/ 1 0.0))
 (writeln (/ -3 0.0))
@@ -350,3 +351,137 @@
 (writeln (+ (/ -3 0.0) (/ -2 0.0)))
 
 (writeln (- (/ 3 0.0) (/ 2 0.0)))
+
+;;; niektóre tu się dublują bo je wklejam z osobnego testera, ale też
+;;; lepije 2 razy przetestować to samo niż nie przetestować ani razu!
+
+(writeln `(just-in-case it's a w: ,(cadr '(q w e))))
+
+(writeln 'more-matching:)
+(match '(q w e)
+  (`(,a) (writeln `(a= ,a)))
+  (`(,a ,b ,c) (writeln `(abc b= ,b)))
+  (`,elo (writeln `(elo ,elo))))
+
+(match '(q w)
+  (`(,a) (writeln `(a= ,a)))
+  (`(,a ,b ,c) (writeln `(abc b= ,b)))
+  (`,elo (writeln `(elo ,elo))))
+
+(match '(q)
+  (`(,a) (writeln `(a= ,a)))
+  (`(,a ,b ,c) (writeln `(abc b= ,b)))
+  (`,elo (writeln `(elo ,elo))))
+
+(match '23
+  (_ (writeln 'pff))
+  (`(,a ,b ,c) (writeln `(abc b= ,b)))
+  (`,elo (writeln `(elo ,elo))))
+
+(writeln (match '(q w e)
+           (`(,a . ,ts) ts)
+           (_ 'oooo)))
+
+(writeln (match '(q w e)
+           (`(,a ,@ts) ts)
+           (_ 'oooo)))
+
+(let ((bułka '(b u ł k a)))
+  (writeln `(oto ,@bułka)))
+
+(writeln 'params--------)
+(define p (make-parameter 0))
+(writeln (p))
+(parameterize ((p 10))
+  (writeln (p))
+  (p (+ (p) 1))
+  (writeln (p)))
+(writeln (p))
+
+(writeln 'dots----------)
+(define (kropeczka x y . zs) zs)
+(writeln (kropeczka 1 2 3 4 5 6))
+(writeln (kropeczka 1 2 3))
+(writeln (kropeczka 1 2))
+(writeln (apply kropeczka `(1 2 3)))
+(writeln (apply kropeczka `(1 2)))
+
+
+(writeln 'map-----------)
+(writeln (map cons '(q w e) '(1 2 3)))
+(writeln (map list '(a b c) '(x x x) '(1 2 3)))
+(writeln (apply map list '((1 2 3) (4 5 6))))
+(writeln (apply map list '(a b c) '((1 2 3) (4 5 6))))
+
+(writeln 'append--------)
+(writeln (append '() '() '(he he)))
+(writeln (append '(q w e) '()))
+(writeln (append '(q w e) '(a s d) '(1 2 3) '(hej ho)))
+(writeln (apply append '((q w) (e r t) (1 2 3))))
+(writeln (apply append '(() (q w e) (r t y))))
+
+(writeln 'append!-------)
+(define a '(q w e))
+(define b (append! a '(4 5 6) '(7 8 9)))
+(writeln a)
+(writeln b)
+(writeln (append! '(a b c) 'd))
+(define c '())
+(writeln (append! c '(e l o)))
+
+(writeln 'assoc---------)
+(writeln (assoc 'a '((a . 23) (b 'elo))))
+(writeln (assoc 'b '((a . 23) (b 'elo))))
+(writeln (assoc 'c '((a . 23) (b 'elo))))
+(writeln (assoc 'a '()))
+
+(writeln 'union---------)
+(writeln (union '(a b c) '(a c e)))
+(writeln (union '(a b c) '(d e f)))
+(writeln (union '(a b c) '(a b c)))
+(writeln (union '(a b c) '(c a b)))
+(writeln (union '() '(a b c)))
+(writeln (union '(a b c) '()))
+(writeln (union '(a b c) '(a b c) '(d a c) '(d d d)))
+(writeln (union '(a b c) '(a b c) '(d a c) '(d a b)))
+(writeln (union '(a (b c) c) '(a b c) '(d a (b c)) '(d a (b c))))
+
+(writeln 'difference----)
+(writeln (difference '() '(a (b c) d)))
+(writeln (difference '(a (e)) '(a (b c) d)))
+(writeln (difference '(a (e)) '(b (e) d)))
+(writeln (difference '(a b) '()))
+
+(writeln 'only----------)
+(writeln (only even? '(1 2 3 4 5 6)))
+(writeln (only odd? '(1 2 3 4 5 6)))
+(writeln (only even? '()))
+(writeln (only (lambda (x) (> x 3)) '(1 2 3 4 5 6 7)))
+(writeln (only (lambda (x) (is x > 3)) '(1 2 3 4 5 6 7)))
+
+(writeln 'member--------)
+(writeln (member 'x '(q w e)))
+(writeln (member 'x '(q x e)))
+(writeln (member 'x '(q w x)))
+
+(writeln 'take&drop-----)
+(writeln (take 2 '(q w e r t y)))
+(writeln (drop 2 '(q w e r t y)))
+(writeln (take 5 '(1 2 3)))
+(writeln (drop 5 '(1 2 3)))
+
+(writeln 'fold-left-----)
+(writeln (fold-left + 0 '(1 2 3 4 5)))
+(writeln (fold-left * 1 '(1 2 3 4 5)))
+(writeln (fold-left + 42 '()))
+(writeln (fold-left (lambda x x) 'co '(ja tu robię?!)))
+
+(writeln 'any-----------)
+(writeln (any even? '(1 2 3 4 5)))
+(writeln (any even? '(1 3 5)))
+(writeln (any even? '()))
+
+(writeln 'every---------)
+(writeln (every even? '(0 2 4 6)))
+(writeln (every even? '(0 2 4 5)))
+(writeln (every even? '()))

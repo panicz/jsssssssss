@@ -20,3 +20,6 @@ var string$Mn$Gtnumber = (s, radix=10) => {
 
 var finite$Qu = isFinite;
 var nan$Qu = isNaN;
+
+var even$Qu = n => number$Qu(n) && n%2==0;
+var odd$Qu = n => number$Qu(n) && n%2==1;

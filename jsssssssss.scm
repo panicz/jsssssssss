@@ -118,11 +118,9 @@
      (string-append "..."(symbol->js last)))))
 
 (define (unlist-dot-arg args)
-  (let* ((last-arg (let seek ((args args))
-                     (if (pair? args)
-                         (seek (cdr args))
-                         args)))
-         (sym (symbol->js last-arg)))
+  (define (symtail as)
+    (if (pair? as) (symtail (cdr as)) as))
+  (let ((sym (symbol->js (symtail args))))
     (string-append "var " sym "=__list(..." sym ");\n"))) ;; XD
 
 (define (to-js expression)

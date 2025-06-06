@@ -31,6 +31,7 @@ var symbol$Mn$Gtstring = s => {
 	.replace(/[$]At/g, "@")
 	.replace(/[$]Tl/g, "~")
 	.replace(/[$]Dt/g, ".")
+	.replace(/[$]Am/g, "&")
 	.replace(/[$]Nm/g, "#");
 }
 
@@ -51,6 +52,7 @@ var string$Mn$Gtsymbol = s => {
 	   .replace(/[@]/g, "$At")
 	   .replace(/[~]/g, "$Tl")
 	   .replace(/[.]/g, "$Dt")
+	   .replace(/[&]/g, "$Am")
 	   .replace(/[#]/g, "$Nm"));
     return { symbol: name };
 };

@@ -2,7 +2,10 @@
 <%%!!weird-=-symbol??%%>
 (quote hehe)
 (quote (quote quote))
-"hohoho   what\na\nstrange\t\"string\"\n\\πżółćµ\\"
+hohoho   what
+a
+strange	"string"
+\πżółćµ\
 #(a b c)
 #(1 2 (a b c) () #f #t)
 ok
@@ -161,6 +164,7 @@ ok
 ok
 (expecting undefined here: #<undefined>)
 #t
+numerals------
 +inf.0
 -inf.0
 0
@@ -174,3 +178,87 @@ ok
 +inf.0
 -inf.0
 +nan.0
+(just-in-case it's a w: w)
+more-matching:
+(abc b= w)
+(elo (q w))
+(a= q)
+pff
+(w e)
+oooo
+(oto b u ł k a)
+params--------
+0
+10
+11
+0
+dots----------
+(3 4 5 6)
+(3)
+()
+(3)
+()
+map-----------
+((q . 1) (w . 2) (e . 3))
+((a x 1) (b x 2) (c x 3))
+((1 4) (2 5) (3 6))
+((a 1 4) (b 2 5) (c 3 6))
+append--------
+(he he)
+(q w e)
+(q w e a s d 1 2 3 hej ho)
+(q w e r t 1 2 3)
+(q w e r t y)
+append!-------
+(q w e 4 5 6 7 8 9)
+(q w e 4 5 6 7 8 9)
+(a b c . d)
+(e l o)
+assoc---------
+(a . 23)
+(b (quote elo))
+#f
+#f
+union---------
+(a b c e)
+(a b c d e f)
+(a b c)
+(a b c)
+(a b c)
+(a b c)
+(a b c d)
+(a b c d)
+(a (b c) c b d)
+difference----
+()
+((e))
+(a)
+(a b)
+only----------
+(2 4 6)
+(1 3 5)
+()
+(4 5 6 7)
+(4 5 6 7)
+member--------
+#f
+(x e)
+(x)
+take&drop-----
+(q w)
+(e r t y)
+(1 2 3)
+()
+fold-left-----
+15
+120
+42
+(((co ja) tu) robię?!)
+any-----------
+#t
+#f
+#f
+every---------
+#t
+#f
+#t
