@@ -1,17 +1,10 @@
-var char$Qu = x => typeof(x) == 'object'
-    && typeof(x.char) == 'string'
-    && x.char.length == 1;
-
-var string$Qu = x => typeof(x) == 'string';
-
-var symbol$Qu = x => typeof(x) == 'object'
-    && typeof(x.symbol) == 'string';
+/////////////////////////////////////////////////////////////////////
+// STRINGS
 
 const __EOF = {char: false};
+const __is_eof_object = x => (x === __EOF);
 
-var eof$Mnobject$Qu = x => x === __EOF;
-
-var symbol$Mn$Gtstring = s => {
+const __symbol2string = s => {
     if (typeof(s.symbol) == 'undefined') {
 	throw new Error("not a symbol: "+s);
     }
@@ -33,9 +26,9 @@ var symbol$Mn$Gtstring = s => {
 	.replace(/[$]Dt/g, ".")
 	.replace(/[$]Am/g, "&")
 	.replace(/[$]Nm/g, "#");
-}
+};
 
-var string$Mn$Gtsymbol = s => {
+const __string2symbol = s => {
     var name = (s == "for")
 	? "$Kwfor"
 	: (s.replace(/^([0-9])/, "$$N$1")
@@ -57,33 +50,31 @@ var string$Mn$Gtsymbol = s => {
     return { symbol: name };
 };
 
-var list$Mn$Gtstring = s => list$Mn$Gtvector(s).map(c => c.char).join('');
+/////////////////////////////////////////////////////////////////////
 
-var string$Mn$Gtlist = s => vector$Mn$Gtlist(s.split('').map(c =>{ return {char: c} }));
+var char$Qu = __is_char;
+var string$Qu = __is_string;
+var symbol$Qu = __is_symbol;
+var eof$Mnobject$Qu = __is_eof_object;
+
+var symbol$Mn$Gtstring = __symbol2string;
+var string$Mn$Gtsymbol = __string2symbol;
+
+var list$Mn$Gtstring = s => __list2vector(s).map(c => c.char).join('');
+var string$Mn$Gtlist = s => __vector2list(s.split('').map(c =>{ return {char: c} }));
 
 var string$Mnappend = (...args) => args.join('');
 
 var string$Mnjoin = (strings, joint='') => {
     res = "";
-    while(pair$Qu(strings)) {
-        if(!string$Qu(strings.car)) throw "string-join wrong type argument";
+    while(__is_pair(strings)) {
+        if(!__is_string(strings.car)) throw new Error("string-join wrong type argument");
         res += strings.car;
         strings = strings.cdr;
-        if(null$Qu(strings)) return res;
-        if(!pair$Qu(strings)) throw "string-join wrong type argument";
+        if(__is_nil(strings)) return res;
+        if(!__is_pair(strings)) throw new Error("string-join wrong type argument");
         res += joint;
     }
-};
-
-let charName = c => {
-    let i = c.char.codePointAt(0);
-    if (i < 16) {
-	return "x0"+i.toString(16);
-    }
-    if (i <= 32) {
-	return "x"+i.toString(16);
-    }
-    return c.char;
 };
 
 var string$Mnref = (s, i) => { return {char: s[i]}; };
@@ -107,6 +98,6 @@ var string$Mnreplace$Mnsubstring = (s, p, r) =>
 			 'g'), r);
 
 
-var char$Mnnumeric$Qu = x => char$Qu(x) && /[0-9]/.test(x.char);
+var char$Mnnumeric$Qu = x => __is_char(x) && /[0-9]/.test(x.char);
 
-var string$Eq$Qu = mk_seq_rel((x,y) => string$Qu(x) && string$Qu(y) && x==y)
+var string$Eq$Qu = mk_seq_rel((x,y) => __is_string(x) && __is_string(y) && x===y);

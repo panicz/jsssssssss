@@ -1,3 +1,6 @@
+/////////////////////////////////////////////////////////////////////
+// PORTS
+
 var input$Mnport$Qu = x => typeof(x) == 'object'
     && typeof(x.readChar) == 'procedure'
     && typeof(x.peekChar) == 'procedure'
@@ -127,11 +130,11 @@ let stdout = new OutputFilePort(1, "stdout");
 
 let stderr = new OutputFilePort(2, "stderr");
 
-var current$Mninput$Mnport = make$Mnparameter(stdin);
+var current$Mninput$Mnport = __make_parameter(stdin);
 
-var current$Mnoutput$Mnport = make$Mnparameter(stdout);
+var current$Mnoutput$Mnport = __make_parameter(stdout);
 
-var current$Mnerror$Mnport = make$Mnparameter(stderr);
+var current$Mnerror$Mnport = __make_parameter(stderr);
 
 var call$Mnwith$Mninput$Mnstring = (string, f) => {
     return f(new InputStringPort(string));
@@ -145,23 +148,23 @@ var call$Mnwith$Mnoutput$Mnstring = (f) => {
 
 var with$Mninput$Mnfrom$Mnstring = (string, f) => {
     let p = new InputStringPort(string);
-    push$Mnparameter(current$Mninput$Mnport, p);
+    __push_parameter(current$Mninput$Mnport, p);
     try {
 	return f();
     }
     finally {
-	pop$Mnparameter(current$Mninput$Mnport);
+	__pop_parameter(current$Mninput$Mnport);
     }
 };
 
 var with$Mnoutput$Mnto$Mnstring = (f) => {
     let p = new OutputStringPort();
-    push$Mnparameter(current$Mnoutput$Mnport, p);
+    __push_parameter(current$Mnoutput$Mnport, p);
     try {
 	f();
     }
     finally {
-	pop$Mnparameter(current$Mnoutput$Mnport);
+	__pop_parameter(current$Mnoutput$Mnport);
     }
     return p.string;
 };
@@ -212,24 +215,24 @@ var call$Mnwith$Mnoutput$Mnfile = (name, f) => {
 
 var with$Mninput$Mnfrom$Mnfile = (name, f) => {
     let p = open$Mninput$Mnfile(name);
-    push$Mnparameter(current$Mninput$Mnport, p);
+    __push_parameter(current$Mninput$Mnport, p);
     try {
 	return f();
     }
     finally {
-	pop$Mnparameter(current$Mninput$Mnport);
+	__pop_parameter(current$Mninput$Mnport);
 	p.close();
     }
 };
 
 var with$Mnoutput$Mnto$Mnfile = (name, f) => {
     let p = open$Mnoutput$Mnfile(name);
-    push$Mnparameter(current$Mnoutput$Mnport, p);
+    __push_parameter(current$Mnoutput$Mnport, p);
     try {
 	return f();
     }
     finally {
-	pop$Mnparameter(current$Mnoutput$Mnport);
+	__pop_parameter(current$Mnoutput$Mnport);
 	p.close();
     }
 };
