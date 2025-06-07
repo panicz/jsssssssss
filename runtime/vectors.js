@@ -1,25 +1,24 @@
-var vector$Qu = x => typeof(x) == 'object'
-    && typeof(x.vector) == 'object'
-    && Array.isArray(x.vector);
+var vector$Qu = x => typeof(x) == 'object' && Array.isArray(x);
 
-var make$Mnvector = (k,f) => { return {vector: Array(k).fill(f)} };
-
-var vector = (...xs) => {return {vector: xs} };
+var make$Mnvector = (k,f) => { return Array(k).fill(f); };
+var vector = (...xs) => {return xs; };
 
 var list$Mn$Gtvector = l => {
-    if(!list$Qu(l) && !null$Qu(l)) throw "list->vector wrong type argument";
-    var ll = length(l);
-    var xs = Array(ll);
-    for(var i=0;i<ll;i++) { xs[i] = l.car; l = l.cdr; }
-    return {vector: xs};
+    var v = Array(length(l));
+    for(var i=0;i<v.length;i++) { v[i] = l.car; l = l.cdr; }    
+    return v;
 };
 
-var vector$Mn$Gtlist = v => __list(...v.vector);
+var vector$Mn$Gtlist = v => {
+    var l = __nil;
+    for(var i=v.length-1; i>=0; i--) { l = cons(v[i],l); }
+    return l;
+};
 
-var vector$Mnlength = v => v.vector.length;
+var vector$Mnlength = v => v.length;
 
-var vector$Mnref = (v,k) => v.vector[k];
+var vector$Mnref = (v,k) => v[k];
 
-var vector$Mnset$Ex = (v,k,o) => v.vector[k]=o;
+var vector$Mnset$Ex = (v,k,o) => v[k]=o;
 
-var vector$Mnfill$Ex = (v,f) => v.vector.fill(f);
+var vector$Mnfill$Ex = (v,f) => v.fill(f);

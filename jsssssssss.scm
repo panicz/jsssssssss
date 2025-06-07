@@ -101,9 +101,9 @@
     (string-append "\"" (string-escape lisp-data) "\""))
    ((vector? lisp-data)
     (string-append
-     "{vector: ["
+     "["
      (string-join (map js-representation (vector->list lisp-data)) ",")
-     "]}"))))
+     "]"))))
 
 (define (args-to-js args)
   (match args
@@ -121,7 +121,7 @@
   (define (symtail as)
     (if (pair? as) (symtail (cdr as)) as))
   (let ((sym (symbol->js (symtail args))))
-    (string-append "var " sym "=__list(..." sym ");\n"))) ;; XD
+    (string-append "var " sym "=vector$Mn$Gtlist(" sym ");\n"))) ;; XD
 
 (define (to-js expression)
   (match expression

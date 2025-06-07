@@ -16,7 +16,7 @@ var append = (...xs) => {
     if(xs.length<1) return __nil;
     var res = xs[xs.length-1];
     for(var i=xs.length-2;i>=0;i--) {
-        var tmp = __unlist(xs[i]);
+        var tmp = list$Mn$Gtvector(xs[i]);
         for(var j=tmp.length-1;j>=0;j--) {
             res = cons(tmp[j],res);
         }
@@ -47,20 +47,7 @@ var length = xs => {
     else throw "length wrong type argument";
 };
 
-var __list = (...xs) => {
-    var res = __nil;
-    for(var i=xs.length-1; i>=0; i--) { res = cons(xs[i],res); }
-    return res;
-};
-
-var list = __list;
-
-var __unlist = xs => {
-    var arr = [];
-    while(pair$Qu(xs)) { arr.push(xs.car); xs = xs.cdr; }
-    if(!null$Qu(xs)) throw "__unlist wrong type argument"
-    return arr;
-};
+var list = (...xs) => vector$Mn$Gtlist(xs);
 
 var member = (e, l) => {
     while(pair$Qu(l)) {
@@ -78,7 +65,7 @@ var drop = (n, l) => {
 var take = (n, l) => {
     var q = [];
     while(n>0 && pair$Qu(l)) {q.push(l.car); l = l.cdr; n -= 1;}
-    return __list(...q);
+    return vector$Mn$Gtlist(q);
 };
 
 var any = (pred, l) => {
@@ -117,12 +104,11 @@ var map = (f, ...ls) => {
         res.push(f.apply(null,args));
         ls = ls.map(x => cdr(x));        
     }
-    return __list(...res);
+    return vector$Mn$Gtlist(res);
 }
 
-var only = (pred, l) => __list(...__unlist(l).filter(pred));
+var only = (pred, l) => vector$Mn$Gtlist(list$Mn$Gtvector(l).filter(pred));
 
-//var fold$Mnleft = (op, init, l) =>  __unlist(l).reduce(op, init);
 var fold$Mnleft = (op, init, l) => {
     var acc = init;
     while(pair$Qu(l)) {
@@ -141,7 +127,7 @@ var union = (...sets) => {
     }
     var set = {};
     for (var s of sets) {
-	    for (var x of __unlist(s)) {
+	    for (var x of list$Mn$Gtvector(s)) {
 	        set[serialize(x)] = x;
 	    }
     }
@@ -149,13 +135,13 @@ var union = (...sets) => {
     for (var k in set) {
 	result.push(set[k]);
     }
-    return __list(...result);
+    return vector$Mn$Gtlist(result);
 };
 
 var difference = (a, b) => {
     var bset = {};
-    for (var x of __unlist(b)) {
+    for (var x of list$Mn$Gtvector(b)) {
 	bset[serialize(x)] = 1;
     }
-    return list(...__unlist(a).filter(x=> !(serialize(x) in bset)));
+    return vector$Mn$Gtlist(list$Mn$Gtvector(a).filter(x=> !(serialize(x) in bset)));
 };

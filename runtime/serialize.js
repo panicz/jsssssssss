@@ -6,7 +6,7 @@ var serialize = e => {
     case char$Qu(e): return "#\\"+charName(e);
     case symbol$Qu(e): return symbol$Mn$Gtstring(e);
     case string$Qu(e): return JSON.stringify(e);
-    case vector$Qu(e): return "#("+e.vector.map(serialize).join(" ")+")";
+    case vector$Qu(e): return "#("+e.map(serialize).join(" ")+")";
     case pair$Qu(e):
         var str = "(";
         while(true) {

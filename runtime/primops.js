@@ -43,7 +43,7 @@ var $Ls$Eq = mk_seq_rel((n,m) => n <= m);
 
 var apply = (f, ...args) => {
     var collected = args.slice(0, args.length-1)
-        .concat(__unlist(args[args.length-1]));
+        .concat(list$Mn$Gtvector(args[args.length-1]));
     return f.apply(null, collected);
 };
 

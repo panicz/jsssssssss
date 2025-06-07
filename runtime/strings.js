@@ -57,9 +57,9 @@ var string$Mn$Gtsymbol = s => {
     return { symbol: name };
 };
 
-var list$Mn$Gtstring = s => __unlist(s).map(c => c.char).join('');
+var list$Mn$Gtstring = s => list$Mn$Gtvector(s).map(c => c.char).join('');
 
-var string$Mn$Gtlist = s => __list(...s.split('').map(c =>{ return {char: c} }));
+var string$Mn$Gtlist = s => vector$Mn$Gtlist(s.split('').map(c =>{ return {char: c} }));
 
 var string$Mnappend = (...args) => args.join('');
 
