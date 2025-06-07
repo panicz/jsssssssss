@@ -6,15 +6,16 @@ var serialize = e => {
     case char$Qu(e): return "#\\"+charName(e);
     case symbol$Qu(e): return symbol$Mn$Gtstring(e);
     case string$Qu(e): return JSON.stringify(e);
-    case vector$Qu(e): return "#("+e.vector.map(serialize).join(" ")+")";
+    case vector$Qu(e): return "#("+e.map(serialize).join(" ")+")";
     case pair$Qu(e):
-	if(Array.isArray(e))
-	    return "("+e.map(serialize).join(" ")+")";
-	if (improper$Qu(e))
-	    return "("+e.improper.map(serialize).join(" ")
-	    + " . " + serialize(e.tail) + ")";
-	return "(" + serialize(e.car) + " . "
-            + serialize(e.cdr) + ")";
+        var str = "(";
+        while(true) {
+            str += serialize(e.car);
+            if(null$Qu(e.cdr)) { return str + ")"; }
+            str += " ";
+            if(pair$Qu(e.cdr)) { e = e.cdr; }
+            else { return str += ". " + serialize(e.cdr) + ")"; }
+        }
     case procedure$Qu(e): return "#<"+e.toString()+">";
     case eof$Mnobject$Qu(e): return "#<eof-object>";
     default:
@@ -29,13 +30,11 @@ var serialize = e => {
 };
 
 let arrays$Mnequal$Qu = (a, b) => {
-    if (a.length != b.length) {
-	return false;
-    }
+    if (a.length != b.length) return false;
     for (var i = 0; i < a.length; ++i) {
-	if (!equal$Qu(a[i], b[i])) {
-	    return false;
-	}
+	    if (!equal$Qu(a[i], b[i])) {
+	        return false;
+	    }
     }
     return true;
 }
@@ -43,32 +42,22 @@ let arrays$Mnequal$Qu = (a, b) => {
 let objects$Mnequal$Qu = (a, b) => {
     var a_keys = Object.keys(a);
     var b_keys = Object.keys(b);
-    if (a_keys.length != b_keys.length) {
-	return false;
-    }
+    if (a_keys.length != b_keys.length) return false;
     for (var x of a_keys) {
-	if (!(x in b) || !equal$Qu(a[x], b[x])) {
-	    return false;
-	}
+	    if (!(x in b) || !equal$Qu(a[x], b[x])) return false;
     }
     return true;
 }
 
-var equal$Qu = mk_seq_rel((x,y) => {
-    return x === y
-	|| (typeof(x) == typeof(y)
-	    && ((Array.isArray(x) && Array.isArray(y)
-		 && arrays$Mnequal$Qu(x,y))
-		|| (typeof(x) == 'object'
-		    && objects$Mnequal$Qu(x, y))));
-});
+var __equal2 = (x,y) => (x === y ||
+                         (typeof(x)==typeof(y) &&
+                         ((typeof(x)=='object' && objects$Mnequal$Qu(x,y))
+                          || (pair$Qu(x) && pair$Qu(y) &&
+                            __equal2(x.car, y.car) &&
+                            __equal2(x.cdr, y.cdr)))));
+var equal$Qu = mk_seq_rel(__equal2);
 
-let stringify = (e) => {
-    if(string$Qu(e)) {
-	return e;
-    }
-    return serialize(e);
-}
+let stringify = (e) => string$Qu(e)?e:serialize(e);
 
 var writeln = (...args) => {
     console.log(args.map(stringify).join(''));

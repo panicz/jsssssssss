@@ -57,24 +57,11 @@
            ;;; TODO... (\[abfve]? perhaps unicode stuff \u__ too?)
 	       )))
 
-(define (improper-list-representation c)
-  (with-output-to-string
-    (lambda ()
-      (write-string "{improper: [")
-      (while (pair? c)
-	(write-string (js-representation (car c)))
-	(if (pair? (cdr c))
-	    (write-string ",")
-	    (write-string "]"))
-	(set! c (cdr c)))
-      (write-string ", tail: ")
-      (write-string (js-representation c))
-      (write-string "}"))))
 
 (define (js-representation lisp-data)
   (cond
-   ((list? lisp-data)
-    (string-append "[" (string-join (map js-representation lisp-data) ",") "]"))
+   ((null? lisp-data)
+    "__nil")
    ((symbol? lisp-data)
     (string-append "{symbol: \""(symbol->js lisp-data)"\"}"))
    ((number? lisp-data)
@@ -92,7 +79,8 @@
    ((eq? lisp-data #f)
     "false")
    ((pair? lisp-data)
-    (improper-list-representation lisp-data))
+    (string-append "{car: " (js-representation (car lisp-data))
+                   ",cdr: " (js-representation (cdr lisp-data)) "}"))
    ((char? lisp-data)
     (string-append 
      "{char: \""
@@ -113,9 +101,9 @@
     (string-append "\"" (string-escape lisp-data) "\""))
    ((vector? lisp-data)
     (string-append
-     "{vector: ["
+     "["
      (string-join (map js-representation (vector->list lisp-data)) ",")
-     "]}"))))
+     "]"))))
 
 (define (args-to-js args)
   (match args
@@ -129,16 +117,19 @@
     (last
      (string-append "..."(symbol->js last)))))
 
+(define (unlist-dot-arg args)
+  (define (symtail as)
+    (if (pair? as) (symtail (cdr as)) as))
+  (let ((sym (symbol->js (symtail args))))
+    (string-append "var " sym "=vector$Mn$Gtlist(" sym ");\n"))) ;; XD
+
 (define (to-js expression)
   (match expression
-
-    (`(lambda ,args ,body)
-     (string-append
-      "(("(args-to-js args)")=>"(to-js body)")"))
     
     (`(lambda ,args . ,body)
      (string-append
       "(("(args-to-js args)")=>{\n"
+      (if (list? args) "" (unlist-dot-arg args)) ;; he_he
       (sequence-to-js body) "})"))
 
     (`(if ,condition
@@ -187,7 +178,7 @@
      (string-append
       "(()=>{try{\nreturn "(to-js attempt)"\n}"
       "finally{\n"(to-js eventually)"\n};})()"))
-    
+
     (`(,fun . ,args)
      (if (list? args)
 	 (string-append

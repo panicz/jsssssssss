@@ -1,133 +1,147 @@
-var improper$Qu = x => typeof(x) == 'object'
-    && typeof(x.improper) != 'undefined'
-    && Array.isArray(x.improper)
-    && x.improper.length>0
-    && typeof(x.tail) != 'undefined';
+const __nil = Symbol();
 
-var pair$Qu = x => typeof(x) == 'object'
-    && ((Array.isArray(x) && x.length>0)
-	|| improper$Qu(x));
+var pair$Qu = x => (typeof(x) == 'object' && 'car' in x && 'cdr' in x);
 
-var cons = (h,t) => Array.isArray(t)
-    ? [h].concat(t)
-    : improper$Qu(t)
-    ? {improper: [h].concat(t.improper),
-       tail: t.tail}
-    : {improper: [h], tail: t};
+var cons = (h,t) => {return {car: h, cdr: t}; };
+var car = p => p.car;
+var cdr = p => p.cdr;
+var cadr = p => p.cdr.car;
 
-var car = p => Array.isArray(p)
-    ? p[0]
-    : p.improper[0];
+var null$Qu = x => x===__nil;
 
-var cdr = p => Array.isArray(p)
-    ? p.slice(1)
-    : (p.improper.length > 1
-       ? {improper: p.improper.slice(1), tail: p.tail}
-       : p.tail);
+var list$Qu = x => (null$Qu(x) || pair$Qu(x) && list$Qu(x.cdr));
 
-var cadr = p => Array.isArray(p) ? p[1] : car(cdr(p));
-
-var null$Qu = x => Array.isArray(x) && !x.length;
-
-var list$Qu = x => Array.isArray(x);
-
-var append = (...xs) => xs.length == 0
-    ? []
-    : xs[0].concat(...xs.slice(1));
-
-var append$Ex = (...xs) => {
-    if (xs.length == 0) {
-	return xs;
+var append = (...xs) => {
+    xs = xs.filter(x=>!null$Qu(x));
+    if(xs.length<1) return __nil;
+    var res = xs[xs.length-1];
+    for(var i=xs.length-2;i>=0;i--) {
+        var tmp = list$Mn$Gtvector(xs[i]);
+        for(var j=tmp.length-1;j>=0;j--) {
+            res = cons(tmp[j],res);
+        }
     }
-    
-    for (var x of xs.slice(1)) {
-	if (Array.isArray(x)) {
-	    xs[0].push(...x);
-	} else {
-	    return {improper: xs[0], tail: x};
-	}
-    }
-    return xs[0];
-}
-
-var list = (...xs) => xs;
-
-var for$Mneach = (f, l) => { for (var x of l) { f(x); } };
-
-var map = (f, ...ls) => {
-    switch (ls.length) {
-    case 0: return [];
-    case 1: return ls[0].map(x => f(x));
-    default: break;
-    }
-    var result = [];
-    for (var i = 0; i < ls[0].length; ++i) {
-	var args = [];
-	for (var arglist of ls) {
-	    if (arglist.length < i) {
-		return result;
-	    }
-	    args.push(arglist[i]);
-	}
-	result.push(f.apply(null, args));
-    }
-    return result;
+    return res
 };
 
-var only = (pred, l) => l.filter(pred);
+var append$Ex = (...xs) => {
+    xs = xs.filter(x=>!null$Qu(x));
+    if(xs.length<1) return __nil;
+    for(var i=0;i<xs.length-1;i++) {
+        var p = xs[i];
+        while(pair$Qu(p)) {
+            if(null$Qu(p.cdr)) {
+                p.cdr = xs[i+1];
+                break;
+            }
+            p = p.cdr;
+        }
+    }
+    return xs[0];
+};
 
-var fold$Mnleft = (op, init, l) => l.reduce(op, init);
+var length = xs => {
+    var len = 0;
+    while(pair$Qu(xs)) { xs = xs.cdr ; len += 1; }
+    if(null$Qu(xs)) return len;
+    else throw "length wrong type argument";
+};
 
-var any = (pred, l) => {
-    for (var x of l) {
-	var res = pred(x);
-	if (res !== false) {
-	    return res;
-	}
+var list = (...xs) => vector$Mn$Gtlist(xs);
+
+var member = (e, l) => {
+    while(pair$Qu(l)) {
+        if(equal$Qu(e, l.car)) return l;
+        l = l.cdr;
     }
     return false;
 };
 
-var every = (pred, l) => l.every(pred)
+var drop = (n, l) => {
+    while(n>0 && pair$Qu(l)) { l = l.cdr; n -= 1; }
+    return l;
+};
+
+var take = (n, l) => {
+    var q = [];
+    while(n>0 && pair$Qu(l)) {q.push(l.car); l = l.cdr; n -= 1;}
+    return vector$Mn$Gtlist(q);
+};
+
+var any = (pred, l) => {
+    while(pair$Qu(l)) {
+        var res = pred(l.car);
+        if(res!==false) return res;
+        l = l.cdr;
+    }
+    return false;
+};
+
+var every = (pred, l) => {
+    while(pair$Qu(l)) {
+        if(pred(l.car)===false) return false;
+        l = l.cdr;
+    }
+    return true;
+};
+
+var assoc = (key, alist) => {
+    while(pair$Qu(alist)) {
+	    if(equal$Qu(alist.car.car, key)) return alist.car;
+	    alist = alist.cdr;
+    }
+    return false;
+};
+
+var for$Mneach = (f, l) => {
+    while(pair$Qu(l)) { f(l.car); l=l.cdr; }
+};
+
+var map = (f, ...ls) => {
+    var res = [];
+    while(pair$Qu(ls[0])) {
+        var args = ls.map(x => car(x));
+        res.push(f.apply(null,args));
+        ls = ls.map(x => cdr(x));        
+    }
+    return vector$Mn$Gtlist(res);
+}
+
+var only = (pred, l) => vector$Mn$Gtlist(list$Mn$Gtvector(l).filter(pred));
+
+var fold$Mnleft = (op, init, l) => {
+    var acc = init;
+    while(pair$Qu(l)) {
+        acc = op(acc, l.car);
+        l = l.cdr;
+    }
+    return acc;
+};
+
 
 var union = (...sets) => {
     switch (sets.length) {
-    case 0: return [];
+    case 0: return __nil;
     case 1: return sets[0];
     default: break;
     }
     var set = {};
     for (var s of sets) {
-	for (var x of s) {
-	    set[serialize(x)] = x;
-	}
+	    for (var x of list$Mn$Gtvector(s)) {
+	        set[serialize(x)] = x;
+	    }
     }
     var result = [];
     for (var k in set) {
 	result.push(set[k]);
     }
-    return result;
+    return vector$Mn$Gtlist(result);
 };
 
 var difference = (a, b) => {
     var bset = {};
-    for (var x of b) {
-	bset[stringify(x)] = 1;
+    for (var x of list$Mn$Gtvector(b)) {
+	bset[serialize(x)] = 1;
     }
-    return a.filter(x=> !(stringify(x) in bset));
+    return vector$Mn$Gtlist(list$Mn$Gtvector(a).filter(x=> !(serialize(x) in bset)));
 };
-
-var assoc = (key, alist) => {
-    for (var x of alist) {
-	if (equal$Qu(car(x), key)) {
-	    return x;
-	}
-    }
-    return false;
-}
-
-var member = (element, lset) => any(x => equal$Qu(x,element), lset);
-
-var take = (n, s) => s.slice(0, n);
-
-var drop = (n, s) => s.slice(n);
