@@ -61,7 +61,7 @@
 (define (js-representation lisp-data)
   (cond
    ((null? lisp-data)
-    "[]")
+    "__nil")
    ((symbol? lisp-data)
     (string-append "{symbol: \""(symbol->js lisp-data)"\"}"))
    ((number? lisp-data)

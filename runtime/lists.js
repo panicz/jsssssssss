@@ -1,3 +1,5 @@
+const __nil = Symbol();
+
 var pair$Qu = x => (typeof(x) == 'object' && 'car' in x && 'cdr' in x);
 
 var cons = (h,t) => {return {car: h, cdr: t}; };
@@ -5,13 +7,13 @@ var car = p => p.car;
 var cdr = p => p.cdr;
 var cadr = p => p.cdr.car;
 
-var null$Qu = x => Array.isArray(x) && !x.length;
+var null$Qu = x => x===__nil;
 
 var list$Qu = x => (null$Qu(x) || pair$Qu(x) && list$Qu(x.cdr));
 
 var append = (...xs) => {
     xs = xs.filter(x=>!null$Qu(x));
-    if(xs.length<1) return [];
+    if(xs.length<1) return __nil;
     var res = xs[xs.length-1];
     for(var i=xs.length-2;i>=0;i--) {
         var tmp = __unlist(xs[i]);
@@ -24,7 +26,7 @@ var append = (...xs) => {
 
 var append$Ex = (...xs) => {
     xs = xs.filter(x=>!null$Qu(x));
-    if(xs.length<1) return [];
+    if(xs.length<1) return __nil;
     for(var i=0;i<xs.length-1;i++) {
         var p = xs[i];
         while(pair$Qu(p)) {
@@ -46,7 +48,7 @@ var length = xs => {
 };
 
 var __list = (...xs) => {
-    var res = [];
+    var res = __nil;
     for(var i=xs.length-1; i>=0; i--) { res = cons(xs[i],res); }
     return res;
 };
@@ -133,7 +135,7 @@ var fold$Mnleft = (op, init, l) => {
 
 var union = (...sets) => {
     switch (sets.length) {
-    case 0: return [];
+    case 0: return __nil;
     case 1: return sets[0];
     default: break;
     }
@@ -153,7 +155,7 @@ var union = (...sets) => {
 var difference = (a, b) => {
     var bset = {};
     for (var x of __unlist(b)) {
-	bset[stringify(x)] = 1;
+	bset[serialize(x)] = 1;
     }
-    return list(...__unlist(a).filter(x=> !(stringify(x) in bset)));
+    return list(...__unlist(a).filter(x=> !(serialize(x) in bset)));
 };
