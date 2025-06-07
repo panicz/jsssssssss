@@ -262,3 +262,10 @@ every---------
 #t
 #f
 #t
+immune-to-redefining-primops?
+ok
+ok
+ok
+(q w e a b c)
+(q w e a b c)
+(q w e a b c)

@@ -485,3 +485,19 @@
 (writeln (every even? '(0 2 4 6)))
 (writeln (every even? '(0 2 4 5)))
 (writeln (every even? '()))
+
+(writeln 'immune-to-redefining-primops?)
+
+(writeln (if (member x '(1 2 3)) 'wtf 'ok))
+(define old-equal? equal?)
+(define (equal? . _) #t)
+(writeln (if (member x '(1 2 3)) 'oops 'ok))
+(define equal? old-equal?)
+(writeln (if (member x '(1 2 3)) 'wtf 'ok))
+
+(writeln (append '(q w e) '(a b c)))
+(define old-pair? pair?)
+(define (pair? _) #f)
+(writeln (append '(q w e) '(a b c)))
+(define pair? old-pair?)
+(writeln (append '(q w e) '(a b c)))
