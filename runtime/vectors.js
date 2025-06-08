@@ -1,19 +1,29 @@
-var vector$Qu = x => typeof(x) == 'object' && Array.isArray(x);
+/////////////////////////////////////////////////////////////////////
+// VECTORS
+
+const __list2vector = l => {
+    if(!__is_list(l)) throw "list->vector wrong type argument";
+    var ll = length(l);
+    var v = Array(ll);
+    for(var i=0;i<ll;i++) { v[i] = l.car; l = l.cdr; }
+    return v;
+};
+
+const __vector2list = v => {
+    var l = __nil;
+    for(var i=v.length-1; i>=0; i--) l = {car: v[i], cdr: l};
+    return l;
+};
+
+/////////////////////////////////////////////////////////////////////
+
+var vector$Qu = __is_vector;
 
 var make$Mnvector = (k,f) => { return Array(k).fill(f); };
 var vector = (...xs) => {return xs; };
 
-var list$Mn$Gtvector = l => {
-    var v = Array(length(l));
-    for(var i=0;i<v.length;i++) { v[i] = l.car; l = l.cdr; }    
-    return v;
-};
-
-var vector$Mn$Gtlist = v => {
-    var l = __nil;
-    for(var i=v.length-1; i>=0; i--) { l = cons(v[i],l); }
-    return l;
-};
+var list$Mn$Gtvector = __list2vector;
+var vector$Mn$Gtlist = __vector2list;
 
 var vector$Mnlength = v => v.length;
 
